@@ -1,17 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { formatGrams, formatTMR, DEFAULT_GRAMS_PER_TOLA } from '@/lib/gold-math'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Scale,
-  ArrowDownToLine,
-  Lock,
-  Unlock,
-  Sliders,
-  Check,
-} from 'lucide-react'
+import { Scale, ArrowDownToLine } from 'lucide-react'
 import { toast } from 'sonner'
+import { ScaleTestPresets } from '@/components/pos/ScaleTestPresets'
 
 interface ScaleReaderProps {
   onCaptureWeight: (weightMg: number) => void
@@ -20,11 +14,9 @@ interface ScaleReaderProps {
 
 export const ScaleReader: React.FC<ScaleReaderProps> = ({
   onCaptureWeight,
-  currentWeighedWeightMg = 0,
 }) => {
   const {
     scaleState,
-    setScaleState,
     tareScale,
     setSimulatedScaleWeight,
     settings,
@@ -46,11 +38,6 @@ export const ScaleReader: React.FC<ScaleReaderProps> = ({
     }
     onCaptureWeight(scaleState.weightMg)
     toast.success(`Captured ${formatGrams(scaleState.weightMg, 3)}g from scale`)
-  }
-
-  const handleHoldToggle = () => {
-    setIsHeld(!isHeld)
-    toast.info(isHeld ? 'Scale hold released' : 'Scale reading held')
   }
 
   const samplePresets = [
@@ -93,7 +80,7 @@ export const ScaleReader: React.FC<ScaleReaderProps> = ({
         </div>
       </div>
 
-      {/* Clean Monochromatic Display */}
+      {/* Monochromatic Digital Display */}
       <div className="rounded-lg border border-border bg-muted/30 p-4 flex flex-col justify-between">
         <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground uppercase">
           <span>Mode: Gross Weight</span>
@@ -105,9 +92,7 @@ export const ScaleReader: React.FC<ScaleReaderProps> = ({
             <span className="font-mono text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight tabular-nums">
               {formatGrams(scaleState.weightMg, 3)}
             </span>
-            <span className="text-xl font-semibold text-muted-foreground">
-              Grams
-            </span>
+            <span className="text-xl font-semibold text-muted-foreground">Grams</span>
           </div>
 
           <div className="text-right font-mono">
@@ -120,7 +105,7 @@ export const ScaleReader: React.FC<ScaleReaderProps> = ({
           </div>
         </div>
 
-        {/* Scale Control Buttons */}
+        {/* Scale Controls */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border">
           <div className="flex items-center gap-2">
             <Button
@@ -136,7 +121,10 @@ export const ScaleReader: React.FC<ScaleReaderProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleHoldToggle}
+              onClick={() => {
+                setIsHeld(!isHeld)
+                toast.info(isHeld ? 'Scale hold released' : 'Scale reading held')
+              }}
               className="h-8 text-xs font-mono font-medium cursor-pointer"
             >
               {isHeld ? 'Unhold' : 'Hold'}
@@ -155,28 +143,11 @@ export const ScaleReader: React.FC<ScaleReaderProps> = ({
         </div>
       </div>
 
-      {/* Test Weights Presets */}
       {showPresets && (
-        <div className="p-2.5 rounded-lg border border-border bg-muted/20 space-y-1.5">
-          <div className="text-[11px] font-medium text-muted-foreground">
-            Click any test weight to simulate item placed on scale:
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
-            {samplePresets.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => setSimulatedScaleWeight(item.weightMg)}
-                className="py-1.5 px-2 rounded border border-border bg-background hover:bg-muted text-left transition-colors cursor-pointer"
-              >
-                <div className="text-xs font-medium text-foreground truncate">{item.label}</div>
-                <div className="text-[10px] font-mono text-muted-foreground">
-                  {(item.weightMg / 1000).toFixed(3)}g
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        <ScaleTestPresets
+          samplePresets={samplePresets}
+          onSelectPreset={setSimulatedScaleWeight}
+        />
       )}
     </div>
   )
