@@ -1,1 +1,20 @@
-/* Custom app-level style additions if needed */
+/* Reference-inspired POS palette stays readable even when the app shell is in dark mode. */
+.pos-reference-shell {
+  --background: 54 72% 96%;
+  --foreground: 224 38% 16%;
+  --card: 54 100% 98%;
+  --card-foreground: 224 38% 16%;
+  --muted: 150 55% 93%;
+  --muted-foreground: 215 24% 35%;
+  --input: 0 0% 100%;
+  --border: 222 56% 48%;
+  --primary: 151 78% 38%;
+  --primary-foreground: 0 0% 100%;
+  color: hsl(var(--foreground));
+}
+
+.pos-reference-shell input,
+.pos-reference-shell button {
+  color-scheme: light;
+}
+

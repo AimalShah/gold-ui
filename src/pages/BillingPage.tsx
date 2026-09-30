@@ -203,35 +203,30 @@ export const BillingPage: React.FC = () => {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto bg-muted/30 p-4 md:p-6">
-      <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Point of sale</p>
-            <h1 className="text-2xl font-bold tracking-tight">New {billType === 'sale' ? 'sale' : 'purchase'}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Enter the item details, then collect payment.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-lg border bg-card p-1">
-              {(['sale', 'purchase'] as const).map((type) => (
-                <button key={type} type="button" onClick={() => setBillType(type)} className={cn('rounded-md px-4 py-2 text-sm font-semibold capitalize transition-colors', billType === type ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}>
-                  {type}
-                </button>
-              ))}
-            </div>
-            <Button variant="outline" size="sm" onClick={() => weightMg > 0 || amountReceivedPkr > 0 ? setConfirmClearOpen(true) : doClearForm()} className="h-10 gap-2 bg-card">
-              <RotateCcw /> Clear
-            </Button>
-          </div>
+    <div className="pos-reference-shell flex-1 overflow-y-auto bg-[#dff7f4] p-2 md:p-4">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-2 rounded-xl border-4 border-[#244fc1] bg-[#f7f3d8] p-2 shadow-xl">
+        <header className="border-b-4 border-[#244fc1] bg-gradient-to-r from-[#fff0bd] via-[#fffdf0] to-[#c9f5d7] px-4 py-2 text-center">
+          <h1 className="font-serif text-3xl font-black uppercase tracking-[0.12em] text-[#17213b]">Gold Point of Sale</h1>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#36516a]">Simple billing for jewellery sales and purchases</p>
         </header>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-2 border-[#244fc1] bg-[#d9f7ed] p-2">
+          <div className="flex rounded-md border-2 border-[#244fc1] bg-white p-0.5">
+            {(['sale', 'purchase'] as const).map((type) => (
+              <button key={type} type="button" onClick={() => setBillType(type)} className={cn('px-5 py-1.5 text-sm font-black uppercase', billType === type ? 'bg-[#244fc1] text-white' : 'text-[#17213b] hover:bg-[#dce9ff]')}>
+                {type}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 text-sm font-bold text-[#17213b]">Today&apos;s transaction <Button variant="outline" size="sm" onClick={() => weightMg > 0 || amountReceivedPkr > 0 ? setConfirmClearOpen(true) : doClearForm()} className="h-8 border-2 border-[#244fc1] bg-white font-bold"><RotateCcw /> Clear</Button></div>
+        </div>
 
-        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-          <section className="flex flex-col gap-5">
+        <div className="grid items-start gap-2 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="flex flex-col gap-2">
             <ScaleReader onCaptureWeight={handleScaleCapture} currentWeighedWeightMg={weightMg} />
-            <div className="rounded-xl border bg-card p-5 shadow-sm">
-              <div className="mb-5 flex items-center justify-between">
+            <div className="rounded-none border-2 border-[#244fc1] bg-[#edffd7] p-3">
+              <div className="mb-3 flex items-center justify-between border-b-2 border-[#8bb8a7] pb-2">
                 <div>
-                  <h2 className="text-lg font-bold">Item details</h2>
+                  <h2 className="text-lg font-black uppercase tracking-wide text-[#17213b]">Item details</h2>
                   <p className="text-sm text-muted-foreground">What are you selling or buying today?</p>
                 </div>
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{carat}K gold</span>
@@ -270,13 +265,13 @@ export const BillingPage: React.FC = () => {
             </div>
           </section>
 
-          <aside className="flex flex-col gap-5 xl:sticky xl:top-6">
-            <div className="rounded-xl border bg-card p-5 shadow-sm">
+          <aside className="flex flex-col gap-2 xl:sticky xl:top-2">
+            <div className="rounded-none border-2 border-[#244fc1] bg-[#fffde9] p-3 shadow-none">
               <div className="mb-3 flex items-center justify-between"><div><h2 className="font-bold">Customer</h2><p className="text-xs text-muted-foreground">Who is this transaction for?</p></div><Button variant="outline" size="sm" onClick={() => setCustomerModalOpen(true)} className="gap-2"><Search /> Find</Button></div>
               {selectedCustomer ? <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-3"><div><p className="font-semibold">{selectedCustomer.name}</p><p className="text-xs text-muted-foreground">{selectedCustomer.phone}</p></div><button type="button" onClick={() => { setSelectedCustomer(null); setCustomerSearchInput('') }} className="text-xs text-destructive">Remove</button></div> : <div className="flex gap-2"><Input aria-label="Customer name" placeholder="Walk-in customer" value={customerSearchInput} onChange={(e) => setCustomerSearchInput(e.target.value)} className="h-10" /><Button variant="outline" onClick={() => setCustomerSearchInput('Walk-in')}>Walk-in</Button></div>}
             </div>
 
-            <div className="rounded-xl border bg-card p-5 shadow-sm">
+            <div className="rounded-none border-2 border-[#244fc1] bg-[#fffde9] p-3 shadow-none">
               <div className="mb-4 flex items-center justify-between"><div><h2 className="font-bold">Payment</h2><p className="text-xs text-muted-foreground">Review and collect payment</p></div><span className="text-xs text-muted-foreground">{billType === 'sale' ? 'Sale' : 'Purchase'}</span></div>
               <div className="flex flex-col gap-3"><div className="flex justify-between text-sm"><span className="text-muted-foreground">Gold value</span><span className="font-mono font-semibold">PKR {Math.round(goldValuePkr).toLocaleString()}</span></div><div className="flex justify-between text-sm"><span className="text-muted-foreground">Making charges</span><span className="font-mono font-semibold">PKR {Math.round(totalAmountPkr - goldValuePkr).toLocaleString()}</span></div><div className="rounded-lg bg-primary/10 p-4"><p className="text-sm font-semibold">Total to collect</p><p className="mt-1 text-3xl font-bold text-primary">PKR {Math.round(totalAmountPkr).toLocaleString()}</p></div><div className="flex items-center justify-between"><label htmlFor="amount-received" className="text-sm font-semibold">Amount received</label><button type="button" onClick={() => setAmountReceivedPkr(totalAmountPkr)} className="text-xs font-semibold text-primary">Exact amount</button></div><MoneyInput value={amountReceivedPkr} onChange={setAmountReceivedPkr} /><div className="flex flex-wrap gap-2">{[5000, 10000, 50000, 100000].map((add) => <button key={add} type="button" onClick={() => setAmountReceivedPkr((amountReceivedPkr || 0) + add)} className="rounded-md border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted">+{add >= 1000 ? `${add / 1000}k` : add}</button>)}</div><div className={cn('flex items-center justify-between rounded-lg border p-3 text-sm font-semibold', balanceDuePkr > 0 ? 'bg-rose-500/10 text-rose-600' : balanceDuePkr < 0 ? 'bg-blue-500/10 text-blue-600' : 'bg-emerald-500/10 text-emerald-600')}><span>{balanceDuePkr > 0 ? 'Balance due' : balanceDuePkr < 0 ? 'Change to customer' : 'Payment status'}</span><span>{balanceDuePkr === 0 ? 'Fully paid' : `PKR ${Math.abs(Math.round(balanceDuePkr)).toLocaleString()}`}</span></div><div className="flex gap-2 pt-2"><Button onClick={handleSaveBill} className="h-12 flex-1 gap-2 text-base font-bold"><Check /> Save sale</Button><Button variant="outline" onClick={handlePrintCurrent} className="h-12 gap-2"><Printer /> Print</Button></div></div>
             </div>
