@@ -23,11 +23,7 @@ import {
   RotateCcw,
   Search,
   Check,
-  Sparkles,
-  User,
   X,
-  Receipt,
-  Scale,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -207,479 +203,84 @@ export const BillingPage: React.FC = () => {
   ]
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-3 md:p-5">
-      {/* 98vw Wide Layout Container */}
-      <div className="w-[98vw] max-w-[98vw] mx-auto space-y-4">
-        {/* Top Control Bar: Transaction Switcher & Reset Button (No mandi rate) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-          <div className="flex items-center gap-3">
-            {/* Clean Transaction Type Switcher */}
-            <div className="flex rounded-lg bg-muted/70 p-1 border border-border">
-              <button
-                type="button"
-                onClick={() => setBillType('sale')}
-                className={cn(
-                  'px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold cursor-pointer transition-all',
-                  billType === 'sale'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Sale Transaction
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillType('purchase')}
-                className={cn(
-                  'px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold cursor-pointer transition-all',
-                  billType === 'purchase'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Purchase Transaction
-              </button>
-            </div>
+    <div className="flex-1 overflow-y-auto bg-muted/30 p-4 md:p-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5">
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Point of sale</p>
+            <h1 className="text-2xl font-bold tracking-tight">New {billType === 'sale' ? 'sale' : 'purchase'}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Enter the item details, then collect payment.</p>
           </div>
-
-          {/* Right Header items: Reset Form Button (mandi rate removed from top bar) */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (weightMg > 0 || amountReceivedPkr > 0) {
-                  setConfirmClearOpen(true)
-                } else {
-                  doClearForm()
-                }
-              }}
-              className="h-8 px-3 text-xs font-semibold text-muted-foreground hover:text-destructive border-border cursor-pointer transition-colors"
-              title="Clear Form"
-            >
-              <RotateCcw className="size-3.5 mr-1.5" />
-              <span>Reset Form</span>
+          <div className="flex items-center gap-2">
+            <div className="flex rounded-lg border bg-card p-1">
+              {(['sale', 'purchase'] as const).map((type) => (
+                <button key={type} type="button" onClick={() => setBillType(type)} className={cn('rounded-md px-4 py-2 text-sm font-semibold capitalize transition-colors', billType === type ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}>
+                  {type}
+                </button>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => weightMg > 0 || amountReceivedPkr > 0 ? setConfirmClearOpen(true) : doClearForm()} className="h-10 gap-2 bg-card">
+              <RotateCcw /> Clear
             </Button>
           </div>
-        </div>
+        </header>
 
-        {/* MAIN 2-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* LEFT COLUMN: DIGITAL SCALE & PRODUCT SPECIFICATIONS (7 COLS) */}
-          <div className="lg:col-span-7 space-y-4">
-            {/* 1. DIGITAL WEIGHING SCALE COMPONENT */}
+        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <section className="flex flex-col gap-5">
             <ScaleReader onCaptureWeight={handleScaleCapture} currentWeighedWeightMg={weightMg} />
-
-            {/* 2. PRODUCT SPECIFICATIONS & WEIGHTS */}
-            <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold">
-                    <Sparkles className="size-4" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-bold text-foreground tracking-tight">
-                      Product & Gold Specifications
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      Item description, purity, weights and non-gold deductions
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                  {carat}K Fine
-                </span>
-              </div>
-
-              {/* Product Name (Full Width) */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground block">
-                  Product Description
-                </label>
-                <Input
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  placeholder="e.g. 22 Karat Bridal Necklace Set, Handcrafted Bangles"
-                  className="h-11 text-sm font-medium w-full bg-background border-border rounded-lg"
-                />
-              </div>
-
-              {/* Gold Purity (Full Width Option Cards) */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-foreground">
-                    Gold Purity Standard
-                  </label>
-                  <span className="text-xs text-muted-foreground">
-                    Select target karat benchmark
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {karatOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setCarat(opt.value)}
-                      className={cn(
-                        'p-3 rounded-lg border text-left transition-all cursor-pointer w-full relative',
-                        carat === opt.value
-                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary'
-                          : 'border-border bg-background hover:bg-muted/50 text-foreground'
-                      )}
-                    >
-                      <div className="text-base font-bold tracking-tight">{opt.label}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{opt.purity}</div>
-                      {carat === opt.value && (
-                        <span className="absolute top-2 right-2 size-2 rounded-full bg-primary" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gross Weight & Gold Rate (Full Width Columns) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold text-foreground">
-                      Gross Weight
-                    </label>
-                    <span className="text-xs font-mono font-medium text-muted-foreground px-2 py-0.5 rounded bg-muted/60">
-                      {formatTMR(weightMg, gramsPerTola)}
-                    </span>
-                  </div>
-                  <WeightInput
-                    value={weightMg}
-                    onChange={(mg) => setWeightMg(mg)}
-                    activeUnit={unitMode}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold text-foreground">
-                      Gold Rate / Tola (PKR)
-                    </label>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      24K: {defaultRate.toLocaleString()}
-                    </span>
-                  </div>
-                  <MoneyInput
-                    value={goldRatePkr}
-                    onChange={(pkr) => setGoldRatePkr(pkr)}
-                  />
-                </div>
-              </div>
-
-              {/* DEDUCTIONS SECTION */}
-              <div className="pt-3 border-t border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-foreground">
-                    Non-Gold Deductions
-                  </label>
-                  <span className="text-xs text-muted-foreground">
-                    Enter stones, gems, and polish wastage
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground block">
-                      Stone & Gem Deduction
-                    </label>
-                    <WeightInput
-                      value={stoneDeductionMg}
-                      onChange={(mg) => setStoneDeductionMg(mg)}
-                      activeUnit={unitMode}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground block">
-                      Wastage & Polish Deduction
-                    </label>
-                    <WeightInput
-                      value={polishDeductionMg}
-                      onChange={(mg) => setPolishDeductionMg(mg)}
-                      activeUnit={unitMode}
-                    />
-                  </div>
-                </div>
-
-                {/* Net Fine Weight Hero Badge */}
-                <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 flex items-center justify-between">
-                  <div>
-                    <span className="text-sm font-bold text-foreground block">
-                      Net Fine Gold Weight
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Calculated pure gold base for pricing
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold font-mono text-primary">
-                      {formatGrams(netWeightMg, 3)} Grams
-                    </div>
-                    <div className="text-xs font-mono text-muted-foreground">
-                      {formatTMR(netWeightMg, gramsPerTola)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* MAKING & CRAFTING CHARGES */}
-              <div className="pt-3 border-t border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-foreground">
-                    Making & Crafting Charges (PKR)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = chargesMode === 'per_tola' ? 'fix' : 'per_tola'
-                      setChargesMode(next)
-                    }}
-                    className="text-xs text-primary font-semibold hover:underline cursor-pointer px-2 py-0.5 rounded bg-primary/10 border border-primary/20"
-                  >
-                    Mode: {chargesMode === 'per_tola' ? 'Per Tola' : 'Fixed Total'}
-                  </button>
-                </div>
-
-                <MoneyInput
-                  value={chargesPkr}
-                  onChange={(pkr) => setChargesPkr(pkr)}
-                />
-
-                {/* Quick Labour Buttons */}
-                <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                  <span className="text-xs text-muted-foreground font-medium">Quick Presets:</span>
-                  {[1000, 1500, 2000, 3500].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setChargesPkr(amt)}
-                      className="px-3 py-1 rounded-md border border-border bg-background hover:bg-muted text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      PKR {amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: COMPACT CUSTOMER, SETTLEMENT & CHECKOUT (5 COLS) */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* 1. COMPACT CUSTOMER SELECTOR */}
-            <div className="rounded-lg border border-border bg-card p-4 space-y-2.5 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="size-4 text-primary" />
-                  <span className="text-sm font-bold text-foreground">Customer</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCustomerModalOpen(true)}
-                  className="h-7 px-2.5 text-xs font-semibold cursor-pointer border-border"
-                >
-                  <Search className="size-3 mr-1" />
-                  <span>Directory</span>
-                </Button>
-              </div>
-
-              {selectedCustomer ? (
-                <div className="p-2.5 rounded-lg border border-border bg-muted/40 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
-                      {selectedCustomer.name.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-sm text-foreground truncate">{selectedCustomer.name}</div>
-                      <div className="text-xs text-muted-foreground font-mono">{selectedCustomer.phone}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span
-                      className={cn(
-                        'text-xs px-2 py-0.5 rounded font-mono font-semibold',
-                        selectedCustomer.cashBalancePkr > 0
-                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                          : selectedCustomer.cashBalancePkr < 0
-                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                      )}
-                    >
-                      {selectedCustomer.cashBalancePkr === 0
-                        ? 'Zero Due'
-                        : selectedCustomer.cashBalancePkr > 0
-                        ? `Owes PKR ${selectedCustomer.cashBalancePkr.toLocaleString()}`
-                        : `Adv PKR ${Math.abs(selectedCustomer.cashBalancePkr).toLocaleString()}`}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCustomer(null)
-                        setCustomerSearchInput('')
-                      }}
-                      className="size-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-muted transition-colors cursor-pointer"
-                      title="Clear Customer"
-                    >
-                      <X className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Walk-in Customer (or type name/phone)"
-                    value={customerSearchInput}
-                    onChange={(e) => setCustomerSearchInput(e.target.value)}
-                    className="h-9 text-xs w-full bg-background"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedCustomer(null)
-                      setCustomerSearchInput('Walk-in Customer')
-                    }}
-                    className="h-9 px-2.5 text-xs shrink-0 cursor-pointer font-medium"
-                  >
-                    Walk-in
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* 2. COMPACT INVOICE BREAKDOWN & PAYMENT SETTLEMENT */}
-            <div className="rounded-lg border border-border bg-card p-4 space-y-3.5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-border pb-2.5">
-                <div className="flex items-center gap-2">
-                  <Receipt className="size-4 text-primary" />
-                  <span className="text-sm font-bold text-foreground">Invoice & Settlement</span>
-                </div>
-                <span className="text-xs font-mono text-muted-foreground">
-                  {billType === 'sale' ? 'Sale Invoice' : 'Purchase Voucher'}
-                </span>
-              </div>
-
-              {/* Clean Financial Breakdown (No redundant weights) */}
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Gold Metal Value</span>
-                  <span className="font-mono text-foreground font-semibold">
-                    PKR {Math.round(goldValuePkr).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Making & Crafting</span>
-                  <span className="font-mono text-foreground font-semibold">
-                    PKR {Math.round(totalAmountPkr - goldValuePkr).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Total Invoice Amount Hero Box */}
-              <div className="p-3.5 rounded-lg bg-primary/10 border border-primary/25 flex items-baseline justify-between">
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <span className="text-sm font-bold text-foreground block">
-                    Total Amount Due
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Inclusive of gold & making
-                  </span>
+                  <h2 className="text-lg font-bold">Item details</h2>
+                  <p className="text-sm text-muted-foreground">What are you selling or buying today?</p>
                 </div>
-                <span className="text-2xl sm:text-3xl font-extrabold text-primary font-mono tracking-tight">
-                  PKR {Math.round(totalAmountPkr).toLocaleString()}
-                </span>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{carat}K gold</span>
               </div>
 
-              {/* Cash Received Input */}
-              <div className="space-y-2 pt-1 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-foreground">
-                    Cash Received (PKR)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setAmountReceivedPkr(totalAmountPkr)}
-                    className="text-xs text-primary font-semibold hover:underline cursor-pointer"
-                  >
-                    Exact (100%)
-                  </button>
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="product-description" className="text-sm font-semibold">Item name</label>
+                  <Input id="product-description" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. Gold necklace" className="h-12 text-base" />
                 </div>
 
-                <MoneyInput
-                  value={amountReceivedPkr}
-                  onChange={(pkr) => setAmountReceivedPkr(pkr)}
-                />
-
-                {/* Quick Cash Chips */}
-                <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
-                  {[5000, 10000, 50000, 100000].map((add) => (
-                    <button
-                      key={add}
-                      type="button"
-                      onClick={() => setAmountReceivedPkr((amountReceivedPkr || 0) + add)}
-                      className="text-xs px-2.5 py-1 rounded border border-border bg-muted/40 hover:bg-muted font-medium text-foreground transition-colors cursor-pointer"
-                    >
-                      +{add >= 1000 ? `${add / 1000}k` : add}
-                    </button>
-                  ))}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold">Purity</label>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {karatOptions.map((opt) => (
+                      <button key={opt.value} type="button" onClick={() => setCarat(opt.value)} className={cn('rounded-lg border p-3 text-left transition-colors', carat === opt.value ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary' : 'hover:bg-muted')}>
+                        <div className="font-bold">{opt.value}K</div>
+                        <div className="text-xs text-muted-foreground">{opt.purity.replace('Jewellery ', '').replace('Pure ', '')}</div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Balance Due / Change */}
-                <div className="p-2.5 rounded-lg border border-border bg-muted/30 flex items-center justify-between mt-1.5">
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    {balanceDuePkr > 0
-                      ? 'Remaining Balance Due:'
-                      : balanceDuePkr < 0
-                      ? 'Change Due to Customer:'
-                      : 'Settlement Status:'}
-                  </span>
-                  <span
-                    className={cn(
-                      'text-sm font-bold font-mono',
-                      balanceDuePkr > 0
-                        ? 'text-rose-600 dark:text-rose-400 font-extrabold'
-                        : balanceDuePkr < 0
-                        ? 'text-blue-600 dark:text-blue-400 font-bold'
-                        : 'text-emerald-600 dark:text-emerald-400 font-bold'
-                    )}
-                  >
-                    {balanceDuePkr === 0
-                      ? 'Fully Settled'
-                      : `PKR ${Math.abs(Math.round(balanceDuePkr)).toLocaleString()}`}
-                  </span>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2"><label className="text-sm font-semibold">Weight</label><WeightInput value={weightMg} onChange={setWeightMg} activeUnit={unitMode} /><span className="text-xs text-muted-foreground">{formatTMR(weightMg, gramsPerTola)} · {formatGrams(weightMg, 3)}g</span></div>
+                  <div className="flex flex-col gap-2"><label className="text-sm font-semibold">Gold rate per tola</label><MoneyInput value={goldRatePkr} onChange={setGoldRatePkr} /><span className="text-xs text-muted-foreground">Today&apos;s 24K rate: PKR {defaultRate.toLocaleString()}</span></div>
                 </div>
-              </div>
 
-              {/* ACTION BUTTONS (Save and Print) */}
-              <div className="pt-2 flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleSaveBill}
-                  className="h-10 px-4 text-xs sm:text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex-1"
-                >
-                  <Check className="size-4 mr-1.5" />
-                  <span>Save Transaction</span>
-                </Button>
+                <div className="rounded-lg border bg-muted/40 p-4">
+                  <div className="mb-3 flex items-center justify-between"><div><h3 className="font-semibold">Deductions</h3><p className="text-xs text-muted-foreground">Optional stones and polish</p></div><span className="font-mono font-bold text-primary">{formatGrams(netWeightMg, 3)}g net</span></div>
+                  <div className="grid gap-3 sm:grid-cols-2"><div className="flex flex-col gap-2"><label className="text-xs font-medium text-muted-foreground">Stones / gems</label><WeightInput value={stoneDeductionMg} onChange={setStoneDeductionMg} activeUnit={unitMode} /></div><div className="flex flex-col gap-2"><label className="text-xs font-medium text-muted-foreground">Polish / wastage</label><WeightInput value={polishDeductionMg} onChange={setPolishDeductionMg} activeUnit={unitMode} /></div></div>
+                </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrintCurrent}
-                  className="h-10 px-3.5 text-xs sm:text-sm font-semibold border-border text-foreground hover:bg-muted cursor-pointer shrink-0"
-                >
-                  <Printer className="size-4 mr-1.5" />
-                  <span>Print</span>
-                </Button>
+                <div className="flex flex-col gap-2"><div className="flex items-center justify-between"><label className="text-sm font-semibold">Making charges</label><button type="button" onClick={() => setChargesMode(chargesMode === 'per_tola' ? 'fix' : 'per_tola')} className="text-xs font-semibold text-primary">{chargesMode === 'per_tola' ? 'Per tola' : 'Fixed total'}</button></div><MoneyInput value={chargesPkr} onChange={setChargesPkr} /><div className="flex flex-wrap gap-2">{[1000, 1500, 2000, 3500].map((amt) => <button key={amt} type="button" onClick={() => setChargesPkr(amt)} className="rounded-md border bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted">PKR {amt.toLocaleString()}</button>)}</div></div>
               </div>
             </div>
-          </div>
+          </section>
+
+          <aside className="flex flex-col gap-5 xl:sticky xl:top-6">
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="mb-3 flex items-center justify-between"><div><h2 className="font-bold">Customer</h2><p className="text-xs text-muted-foreground">Who is this transaction for?</p></div><Button variant="outline" size="sm" onClick={() => setCustomerModalOpen(true)} className="gap-2"><Search /> Find</Button></div>
+              {selectedCustomer ? <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-3"><div><p className="font-semibold">{selectedCustomer.name}</p><p className="text-xs text-muted-foreground">{selectedCustomer.phone}</p></div><button type="button" onClick={() => { setSelectedCustomer(null); setCustomerSearchInput('') }} className="text-xs text-destructive">Remove</button></div> : <div className="flex gap-2"><Input aria-label="Customer name" placeholder="Walk-in customer" value={customerSearchInput} onChange={(e) => setCustomerSearchInput(e.target.value)} className="h-10" /><Button variant="outline" onClick={() => setCustomerSearchInput('Walk-in')}>Walk-in</Button></div>}
+            </div>
+
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between"><div><h2 className="font-bold">Payment</h2><p className="text-xs text-muted-foreground">Review and collect payment</p></div><span className="text-xs text-muted-foreground">{billType === 'sale' ? 'Sale' : 'Purchase'}</span></div>
+              <div className="flex flex-col gap-3"><div className="flex justify-between text-sm"><span className="text-muted-foreground">Gold value</span><span className="font-mono font-semibold">PKR {Math.round(goldValuePkr).toLocaleString()}</span></div><div className="flex justify-between text-sm"><span className="text-muted-foreground">Making charges</span><span className="font-mono font-semibold">PKR {Math.round(totalAmountPkr - goldValuePkr).toLocaleString()}</span></div><div className="rounded-lg bg-primary/10 p-4"><p className="text-sm font-semibold">Total to collect</p><p className="mt-1 text-3xl font-bold text-primary">PKR {Math.round(totalAmountPkr).toLocaleString()}</p></div><div className="flex items-center justify-between"><label htmlFor="amount-received" className="text-sm font-semibold">Amount received</label><button type="button" onClick={() => setAmountReceivedPkr(totalAmountPkr)} className="text-xs font-semibold text-primary">Exact amount</button></div><MoneyInput value={amountReceivedPkr} onChange={setAmountReceivedPkr} /><div className="flex flex-wrap gap-2">{[5000, 10000, 50000, 100000].map((add) => <button key={add} type="button" onClick={() => setAmountReceivedPkr((amountReceivedPkr || 0) + add)} className="rounded-md border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted">+{add >= 1000 ? `${add / 1000}k` : add}</button>)}</div><div className={cn('flex items-center justify-between rounded-lg border p-3 text-sm font-semibold', balanceDuePkr > 0 ? 'bg-rose-500/10 text-rose-600' : balanceDuePkr < 0 ? 'bg-blue-500/10 text-blue-600' : 'bg-emerald-500/10 text-emerald-600')}><span>{balanceDuePkr > 0 ? 'Balance due' : balanceDuePkr < 0 ? 'Change to customer' : 'Payment status'}</span><span>{balanceDuePkr === 0 ? 'Fully paid' : `PKR ${Math.abs(Math.round(balanceDuePkr)).toLocaleString()}`}</span></div><div className="flex gap-2 pt-2"><Button onClick={handleSaveBill} className="h-12 flex-1 gap-2 text-base font-bold"><Check /> Save sale</Button><Button variant="outline" onClick={handlePrintCurrent} className="h-12 gap-2"><Printer /> Print</Button></div></div>
+            </div>
+          </aside>
         </div>
       </div>
 
