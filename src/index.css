@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Luxury Jewellery Warm Porcelain & Gold Palette */
+    --background: 38 25% 97.5%;
+    --foreground: 24 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 24 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 15% 12%;
+    --primary: 38 72% 43%;          /* Refined Royal Gold / Warm Amber */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 15% 93%;        /* Warm Stone */
+    --secondary-foreground: 24 15% 15%;
+    --muted: 35 14% 93%;
+    --muted-foreground: 28 8% 44%;
+    --accent: 38 50% 92%;           /* Champagne Gold Tint */
+    --accent-foreground: 38 80% 24%;
+    --destructive: 0 84.2% 58%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 15% 87%;           /* Warm Stone Border */
+    --input: 35 15% 85%;
+    --ring: 38 72% 43%;             /* Warm Gold Focus Ring */
+    --radius: 0.625rem;
+
+    /* Warm Jewellery POS Row Tints */
+    --tint-weight: 38 30% 97%;
+    --tint-weight-border: 38 25% 85%;
+    --tint-cut: 0 20% 97.5%;
+    --tint-cut-border: 0 20% 86%;
+    --tint-polish: 35 25% 97%;
+    --tint-polish-border: 35 20% 85%;
+    --tint-total-wt: 38 55% 93%;
+    --tint-total-wt-border: 38 65% 65%;
+    --tint-rate: 42 35% 96%;
+    --tint-rate-border: 42 25% 85%;
+    --tint-charges: 38 25% 96.5%;
+    --tint-charges-border: 38 20% 85%;
+    --tint-wasool: 142 30% 95%;
+    --tint-wasool-border: 142 30% 75%;
+  }
+
+  .dark {
+    /* Deep Warm Obsidian & Luminous Gold Palette */
+    --background: 30 10% 7%;
+    --foreground: 38 20% 95%;
+    --card: 30 8% 11%;
+    --card-foreground: 38 20% 95%;
+    --popover: 30 8% 12%;
+    --popover-foreground: 38 20% 95%;
+    --primary: 38 85% 52%;          /* Luminous Jewellery Gold */
+    --primary-foreground: 30 20% 10%;
+    --secondary: 30 8% 16%;
+    --secondary-foreground: 38 20% 95%;
+    --muted: 30 8% 16%;
+    --muted-foreground: 35 10% 64%;
+    --accent: 38 35% 18%;           /* Dark Gold Accent */
+    --accent-foreground: 38 90% 70%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 8% 20%;
+    --input: 35 8% 24%;
+    --ring: 38 85% 52%;
+
+    /* Dark mode warm row tints */
+    --tint-weight: 30 8% 13%;
+    --tint-weight-border: 35 8% 22%;
+    --tint-cut: 0 10% 12%;
+    --tint-cut-border: 0 15% 22%;
+    --tint-polish: 30 8% 13%;
+    --tint-polish-border: 35 8% 22%;
+    --tint-total-wt: 38 25% 16%;
+    --tint-total-wt-border: 38 45% 35%;
+    --tint-rate: 30 8% 12%;
+    --tint-rate-border: 35 8% 22%;
+    --tint-charges: 30 8% 12%;
+    --tint-charges-border: 35 8% 22%;
+    --tint-wasool: 142 20% 13%;
+    --tint-wasool-border: 142 25% 26%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    user-select: none;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  input, textarea {
+    user-select: text;
+  }
+}
+
+/* Ensure all numeric and tabular items use Plus Jakarta Sans with tabular-nums instead of typewriter monospace! */
+.font-mono,
+[class*="font-mono"] {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Custom focus ring for keyboard navigation */
+.focus-cell:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring));
+}
+
+/* Row tint utility classes */
+.tint-row-weight {
+  background-color: hsl(var(--tint-weight) / 0.8);
+  border-color: hsl(var(--tint-weight-border));
+}
+.tint-row-cut {
+  background-color: hsl(var(--tint-cut) / 0.8);
+  border-color: hsl(var(--tint-cut-border));
+}
+.tint-row-polish {
+  background-color: hsl(var(--tint-polish) / 0.8);
+  border-color: hsl(var(--tint-polish-border));
+}
+.tint-row-total-wt {
+  background-color: hsl(var(--tint-total-wt) / 0.95);
+  border-color: hsl(var(--tint-total-wt-border));
+}
+.tint-row-rate {
+  background-color: hsl(var(--tint-rate) / 0.8);
+  border-color: hsl(var(--tint-rate-border));
+}
+.tint-row-charges {
+  background-color: hsl(var(--tint-charges) / 0.8);
+  border-color: hsl(var(--tint-charges-border));
+}
+.tint-row-wasool {
+  background-color: hsl(var(--tint-wasool) / 0.8);
+  border-color: hsl(var(--tint-wasool-border));
+}
