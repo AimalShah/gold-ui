@@ -9,6 +9,7 @@ import { CalculatorDialog } from '@/components/modals/CalculatorDialog'
 import { MandiDialog } from '@/components/modals/MandiDialog'
 import { MixingChooserDialog } from '@/components/modals/MixingChooserDialog'
 import { SwitchUserDialog } from '@/components/modals/SwitchUserDialog'
+import { BackOfficeLoginModal } from '@/components/modals/BackOfficeLoginModal'
 import { Toaster } from '@/components/ui/sonner'
 
 // Page Components
@@ -22,7 +23,6 @@ import { MixingPage } from '@/pages/MixingPage'
 import { InventoryPage } from '@/pages/InventoryPage'
 import { AccountsPage } from '@/pages/AccountsPage'
 import { ReportsPage } from '@/pages/ReportsPage'
-import { RatesPage } from '@/pages/RatesPage'
 import { SmsPage } from '@/pages/SmsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 
@@ -42,6 +42,9 @@ const MainAppContent: React.FC = () => {
     setMixingDialogOpen,
     switchUserOpen,
     setSwitchUserOpen,
+    appMode,
+    switchToBackOffice,
+    switchToPos,
   } = useApp()
 
   // Global Keydown Handler for Shell-level shortcuts
@@ -103,15 +106,20 @@ const MainAppContent: React.FC = () => {
         return
       }
 
-      // Alt Shortcuts for Pages
+      // Alt Shortcuts for Modes & Pages
       if (e.altKey) {
         const k = e.key.toLowerCase()
-        if (k === '1') {
+        if (k === 'm') {
+          e.preventDefault()
+          switchToBackOffice()
+          return
+        } else if (k === 'p' || k === 'b') {
+          e.preventDefault()
+          switchToPos()
+          return
+        } else if (k === '1') {
           e.preventDefault()
           setCurrentPage('dashboard')
-        } else if (k === 'b') {
-          e.preventDefault()
-          setCurrentPage('billing')
         } else if (k === 'i') {
           e.preventDefault()
           setCurrentPage('inventory')
@@ -134,7 +142,18 @@ const MainAppContent: React.FC = () => {
 
     window.addEventListener('keydown', handleGlobalKeyDown)
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [commandOpen, setCommandOpen, setSwitchUserOpen, setCurrentPage, setHelpOpen, setCalcOpen, setMandiDialogOpen, setMixingDialogOpen])
+  }, [
+    commandOpen,
+    setCommandOpen,
+    setSwitchUserOpen,
+    setCurrentPage,
+    setHelpOpen,
+    setCalcOpen,
+    setMandiDialogOpen,
+    setMixingDialogOpen,
+    switchToBackOffice,
+    switchToPos,
+  ])
 
   const renderCurrentPage = () => {
     switch (currentPage) {
@@ -158,8 +177,6 @@ const MainAppContent: React.FC = () => {
         return <AccountsPage />
       case 'reports':
         return <ReportsPage />
-      case 'rates':
-        return <RatesPage />
       case 'sms':
         return <SmsPage />
       case 'settings':
@@ -174,16 +191,16 @@ const MainAppContent: React.FC = () => {
       {/* 1. Global Top Bar */}
       <TopBar />
 
-      {/* 2. Main Middle Workspace: Sidebar + Page Canvas */}
+      {/* 2. Main Middle Workspace: Sidebar (only on dashboard/backoffice) + Page Canvas */}
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar />
+        {appMode === 'backoffice' && <Sidebar />}
         <main className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-          {renderCurrentPage()}
+          {appMode === 'pos' ? <BillingPage /> : renderCurrentPage()}
         </main>
       </div>
 
-      {/* 3. Global Status Footer */}
-      <StatusFooter />
+      {/* 3. Global Status Footer (only on backoffice) */}
+      {appMode === 'backoffice' && <StatusFooter />}
 
       {/* Global Modals */}
       <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
@@ -192,9 +209,10 @@ const MainAppContent: React.FC = () => {
       <MandiDialog open={mandiDialogOpen} onOpenChange={setMandiDialogOpen} />
       <MixingChooserDialog open={mixingDialogOpen} onOpenChange={setMixingDialogOpen} />
       <SwitchUserDialog open={switchUserOpen} onOpenChange={setSwitchUserOpen} />
+      <BackOfficeLoginModal />
 
       {/* Global Toast Notifications (Sonner) */}
-      <Toaster position="top-right" richColors />
+      <Toaster position="bottom-right" richColors />
     </div>
   )
 }

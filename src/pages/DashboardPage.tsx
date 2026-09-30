@@ -1,19 +1,22 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useApp } from '@/context/AppContext'
 import { formatGrams, formatMoney } from '@/lib/gold-math'
-import { Button } from '@/components/ui/button'
+import { PageTitle } from '@/components/shared/PageTitle'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
-  LayoutDashboard,
-  Receipt,
-  Users,
-  Clock,
-  ArrowUpRight,
-  Boxes,
-  Activity,
-  CheckCircle2,
-} from 'lucide-react'
+  HiOutlineSquare3Stack3D,
+  HiCalendarDays,
+} from 'react-icons/hi2'
 import {
+  HiOutlineShoppingCart,
+  HiOutlineRefresh,
+  HiOutlineCheck,
+} from 'react-icons/hi'
+import { BsTruck } from 'react-icons/bs'
+import {
+  ResponsiveContainer,
   AreaChart,
   Area,
   BarChart,
@@ -21,395 +24,308 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
 } from 'recharts'
+import { Eye, Plus } from 'lucide-react'
 
 export const DashboardPage: React.FC = () => {
   const {
     bills,
     orders,
     customers,
-    mandi,
     setCurrentPage,
     setSelectedCustomerIdForDetail,
   } = useApp()
 
-  const [salesUnit, setSalesUnit] = useState<'pkr' | 'grams'>('pkr')
-  const [datePreset, setDatePreset] = useState<'today' | '7d' | '30d'>('7d')
-
   // Calculated Metrics
   const totalSalesPkr = bills.reduce((sum, b) => sum + b.totalPricePkr, 0)
-  const totalGoldSoldMg = bills.filter(b => b.type === 'sale').reduce((sum, b) => sum + b.netWeightMg, 0)
-  const totalGoldBoughtMg = bills.filter(b => b.type === 'purchase').reduce((sum, b) => sum + b.netWeightMg, 0)
   const pendingOrdersCount = orders.filter(o => o.status === 'pending' || o.status === 'in_workshop').length
-  const totalReceivableCashPkr = customers.filter(c => c.cashBalancePkr > 0).reduce((sum, c) => sum + c.cashBalancePkr, 0)
-  const totalGoldOwedMg = customers.filter(c => c.goldBalanceMg > 0).reduce((sum, c) => sum + c.goldBalanceMg, 0)
+  const completedOrdersCount = orders.filter(o => o.status === 'delivered').length
+  const processingOrdersCount = orders.filter(o => o.status === 'in_workshop').length
 
-  // 10-day sales data mock
-  const salesChartData = [
-    { date: 'Sep 20', pkr: 1850000, grams: 75.5 },
-    { date: 'Sep 21', pkr: 2200000, grams: 89.2 },
-    { date: 'Sep 22', pkr: 1450000, grams: 58.8 },
-    { date: 'Sep 23', pkr: 2890000, grams: 118.0 },
-    { date: 'Sep 24', pkr: 3100000, grams: 125.4 },
-    { date: 'Sep 25', pkr: 1980000, grams: 80.2 },
-    { date: 'Sep 26', pkr: 2450000, grams: 98.6 },
-    { date: 'Sep 27', pkr: 2750000, grams: 110.2 },
-    { date: 'Sep 28', pkr: 3400000, grams: 137.5 },
-    { date: 'Sep 29', pkr: 3850000, grams: 154.8 },
+  const salesCards = [
+    {
+      icon: <HiOutlineSquare3Stack3D className="size-7" />,
+      title: "Today's Orders",
+      value: "Rs 3,850,000",
+      className: "bg-teal-600",
+    },
+    {
+      icon: <HiOutlineSquare3Stack3D className="size-7" />,
+      title: "Yesterday's Orders",
+      value: "Rs 3,400,000",
+      className: "bg-amber-500",
+    },
+    {
+      icon: <HiOutlineRefresh className="size-7" />,
+      title: "This Month Sales",
+      value: "Rs 28,450,000",
+      className: "bg-blue-600",
+    },
+    {
+      icon: <HiCalendarDays className="size-7" />,
+      title: "Gold Stock (Tolas)",
+      value: "228.2 Tola",
+      className: "bg-cyan-600",
+    },
+    {
+      icon: <HiCalendarDays className="size-7" />,
+      title: "All-Time Sales",
+      value: "Rs 64,820,000",
+      className: "bg-emerald-600",
+    },
   ]
 
-  // Stock by Karat Data
-  const stockByKaratData = [
-    { karat: '24K (Bullion)', grams: 1632 },
-    { karat: '22K (Jewellery)', grams: 580 },
-    { karat: '21K (Arabian)', grams: 340 },
-    { karat: '18K (Diamond)', grams: 110 },
+  const statusCards = [
+    {
+      icon: <HiOutlineShoppingCart className="size-5" />,
+      title: "Total Orders",
+      value: `${orders.length + bills.length}`,
+      className: "text-orange-600 bg-orange-100 dark:bg-orange-950 dark:text-orange-300",
+    },
+    {
+      icon: <HiOutlineRefresh className="size-5" />,
+      title: "Orders Pending",
+      value: `${pendingOrdersCount}`,
+      className: "text-teal-600 bg-teal-100 dark:bg-teal-950 dark:text-teal-300",
+    },
+    {
+      icon: <BsTruck className="size-5" />,
+      title: "Orders Processing",
+      value: `${processingOrdersCount}`,
+      className: "text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-300",
+    },
+    {
+      icon: <HiOutlineCheck className="size-5" />,
+      title: "Orders Delivered",
+      value: `${completedOrdersCount || 12}`,
+      className: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300",
+    },
   ]
 
-  // Top Customers by Balance
-  const topDebtors = [...customers]
-    .filter(c => c.cashBalancePkr > 0)
-    .sort((a, b) => b.cashBalancePkr - a.cashBalancePkr)
-    .slice(0, 5)
+  // Chart data
+  const weeklySalesData = [
+    { day: "Mon", sales: 1850000, orders: 12 },
+    { day: "Tue", sales: 2200000, orders: 15 },
+    { day: "Wed", sales: 1450000, orders: 9 },
+    { day: "Thu", sales: 2890000, orders: 19 },
+    { day: "Fri", sales: 3100000, orders: 22 },
+    { day: "Sat", sales: 3400000, orders: 26 },
+    { day: "Sun", sales: 3850000, orders: 28 },
+  ]
 
-  // Orders due in next 7 days
-  const upcomingOrders = orders.filter(o => o.status !== 'delivered')
+  const bestSellersData = [
+    { category: "24K Bullion / Passa", grams: 1632, share: 55 },
+    { category: "22K Bridal Necklaces", grams: 580, share: 22 },
+    { category: "21K Traditional Bangles", grams: 340, share: 14 },
+    { category: "18K Diamond Rings", grams: 110, share: 9 },
+  ]
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      {/* Top Header */}
-      <div className="h-12 border-b border-border px-4 flex items-center justify-between bg-card select-none shrink-0">
-        <div className="flex items-center gap-2">
-          <LayoutDashboard className="h-4 w-4 text-foreground" />
-          <h1 className="font-bold text-sm text-foreground tracking-tight">Executive Dashboard</h1>
-        </div>
-
-        {/* Filter bar */}
-        <div className="flex items-center gap-2">
-          <div className="flex rounded border border-border bg-muted p-0.5 text-xs font-mono">
-            <button
-              type="button"
-              onClick={() => setDatePreset('today')}
-              className={`px-2 py-0.5 rounded font-medium ${datePreset === 'today' ? 'bg-background text-foreground shadow-2xs font-bold' : 'text-muted-foreground'}`}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => setDatePreset('7d')}
-              className={`px-2 py-0.5 rounded font-medium ${datePreset === '7d' ? 'bg-background text-foreground shadow-2xs font-bold' : 'text-muted-foreground'}`}
-            >
-              7 Days
-            </button>
-            <button
-              type="button"
-              onClick={() => setDatePreset('30d')}
-              className={`px-2 py-0.5 rounded font-medium ${datePreset === '30d' ? 'bg-background text-foreground shadow-2xs font-bold' : 'text-muted-foreground'}`}
-            >
-              30 Days
-            </button>
-          </div>
-
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-6 space-y-8">
+      {/* 1. Page Header */}
+      <PageTitle
+        description="Comprehensive real-time overview of jewellery retail, sales volume, and workshop orders."
+        action={
           <Button
-            size="sm"
             onClick={() => setCurrentPage('billing')}
-            className="h-8 bg-foreground text-background hover:bg-foreground/90 font-medium text-xs gap-1.5 shadow-2xs"
+            size="lg"
+            className="gap-2 font-medium"
           >
-            <Receipt className="h-3.5 w-3.5" />
-            Open Billing
+            <Plus className="size-4" /> New POS Bill
           </Button>
-        </div>
+        }
+      >
+        Dashboard Overview
+      </PageTitle>
+
+      {/* 2. Sales Overview (5 colorful cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {salesCards.map((card, index) => (
+          <div
+            key={`sales-card-${index}`}
+            className={`p-6 rounded-lg flex flex-col items-center justify-center space-y-2 text-white text-center shadow-xs transition-transform hover:-translate-y-0.5 ${card.className}`}
+          >
+            <div className="[&>svg]:size-7">{card.icon}</div>
+            <p className="text-sm font-medium opacity-90">{card.title}</p>
+            <p className="text-2xl font-bold tracking-tight">{card.value}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* TOP ROW: 6 KPI CARDS (Executive Visual Hierarchy) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {/* 1. Today's Sales */}
-          <div className="p-4 rounded-xl border border-border bg-card shadow-xs hover:border-foreground/25 transition-all flex flex-col justify-between space-y-2">
-            <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider font-sans">Today's Sales</span>
-            <div>
-              <div className="text-2xl font-mono font-black text-foreground tracking-tight tabular-nums">
-                Rs 3.85M
-              </div>
-              <div className="text-[11px] text-muted-foreground font-mono flex items-center gap-0.5 mt-0.5">
-                <ArrowUpRight className="h-3 w-3" /> +12.4% vs yday
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Gold Sold Today */}
-          <div className="p-4 rounded-xl border border-border bg-card shadow-xs hover:border-foreground/25 transition-all flex flex-col justify-between space-y-2">
-            <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider font-sans">Gold Sold Today</span>
-            <div>
-              <div className="text-2xl font-mono font-black text-foreground tracking-tight tabular-nums">
-                {formatGrams(totalGoldSoldMg || 154800, 1)}g
-              </div>
-              <div className="text-[11px] text-muted-foreground font-mono mt-0.5">13.27 Tolas (22K)</div>
-            </div>
-          </div>
-
-          {/* 3. Gold Bought Today */}
-          <div className="p-4 rounded-xl border border-border bg-card shadow-xs hover:border-foreground/25 transition-all flex flex-col justify-between space-y-2">
-            <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider font-sans">Gold Bought</span>
-            <div>
-              <div className="text-2xl font-mono font-black text-foreground tracking-tight tabular-nums">
-                {formatGrams(totalGoldBoughtMg || 233280, 1)}g
-              </div>
-              <div className="text-[11px] text-muted-foreground font-mono mt-0.5">20.00 Tolas Passa</div>
-            </div>
-          </div>
-
-          {/* 4. Cash In Hand */}
-          <div className="p-4 rounded-xl border border-border bg-card shadow-xs hover:border-foreground/25 transition-all flex flex-col justify-between space-y-2">
-            <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider font-sans">Vault Cash</span>
-            <div>
-              <div className="text-2xl font-mono font-black text-foreground tracking-tight tabular-nums">
-                Rs 1.28M
-              </div>
-              <div className="text-[11px] text-muted-foreground font-medium mt-0.5">Drawer Balanced</div>
-            </div>
-          </div>
-
-          {/* 5. Pending Orders */}
-          <div className="p-4 rounded-xl border border-border bg-card shadow-xs hover:border-foreground/25 transition-all flex flex-col justify-between space-y-2">
-            <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider font-sans">Pending Orders</span>
-            <div>
-              <div className="text-2xl font-mono font-black text-foreground tracking-tight tabular-nums">
-                {pendingOrdersCount} <span className="text-xs font-sans font-medium text-muted-foreground">Jobs</span>
-              </div>
-              <div className="text-[11px] text-muted-foreground font-medium mt-0.5">In Workshop</div>
-            </div>
-          </div>
-
-          {/* 6. Total Receivable */}
-          <div className="p-4 rounded-xl border border-border bg-card shadow-xs hover:border-foreground/25 transition-all flex flex-col justify-between space-y-2">
-            <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider font-sans">Receivable Dues</span>
-            <div>
-              <div className="text-2xl font-mono font-black text-foreground tracking-tight tabular-nums">
-                {formatMoney(totalReceivableCashPkr)}
-              </div>
-              <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                + {formatGrams(totalGoldOwedMg, 1)}g Gold
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 2: Two Main Interactive Charts (Clean Monochrome) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Sales History Area Chart (7 cols) */}
-          <div className="lg:col-span-7 rounded-lg border border-border bg-card p-4 space-y-3 shadow-2xs">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <div className="space-y-0.5">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">
-                  Sales Volume Trend (Last 10 Days)
-                </h3>
-                <p className="text-[11px] text-muted-foreground">Daily volume in {salesUnit === 'pkr' ? 'PKR Revenue' : 'Pure Gold Grams'}</p>
-              </div>
-
-              {/* Units toggle */}
-              <div className="flex rounded border border-border bg-muted p-0.5 text-xs font-mono">
-                <button
-                  type="button"
-                  onClick={() => setSalesUnit('pkr')}
-                  className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${salesUnit === 'pkr' ? 'bg-foreground text-background font-bold shadow-2xs' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  PKR
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSalesUnit('grams')}
-                  className={`px-2 py-0.5 rounded font-medium text-[11px] transition-colors ${salesUnit === 'grams' ? 'bg-foreground text-background font-bold shadow-2xs' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  GRAMS
-                </button>
-              </div>
-            </div>
-
-            <div className="h-60 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={salesChartData}>
-                  <defs>
-                    <linearGradient id="monochromeSalesGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#d97706" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#d97706" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.12} />
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                  <YAxis
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(v) => salesUnit === 'pkr' ? `${(v / 1000000).toFixed(1)}M` : `${v}g`}
-                  />
-                  <Tooltip
-                    formatter={(v: any) => [salesUnit === 'pkr' ? `Rs ${v.toLocaleString()}` : `${v} g`, salesUnit === 'pkr' ? 'Revenue' : 'Gold Weight']}
-                    contentStyle={{ fontSize: 11, borderRadius: 8, borderColor: '#e5e7eb' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey={salesUnit === 'pkr' ? 'pkr' : 'grams'}
-                    stroke="#b45309"
-                    strokeWidth={2}
-                    fill="url(#monochromeSalesGrad)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Stock by Karat Distribution (5 cols) */}
-          <div className="lg:col-span-5 rounded-lg border border-border bg-card p-4 space-y-3 shadow-2xs">
-            <div className="border-b border-border pb-2 flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">
-                  Stock Holdings by Karat
-                </h3>
-                <p className="text-[11px] text-muted-foreground">Fine gold distribution in inventory</p>
-              </div>
-              <Badge variant="outline" className="font-mono text-xs border-amber-500/40 text-amber-700 dark:text-amber-400 bg-amber-500/5">
-                Total: 2,662 g
-              </Badge>
-            </div>
-
-            <div className="h-60 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stockByKaratData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.12} />
-                  <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}g`} />
-                  <YAxis dataKey="karat" type="category" width={110} tick={{ fontSize: 10, fontWeight: 'medium' }} />
-                  <Tooltip
-                    formatter={(v: any) => [`${v} grams`, 'Holdings']}
-                    contentStyle={{ fontSize: 11, borderRadius: 8 }}
-                  />
-                  <Bar dataKey="grams" fill="#d97706" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 3: Three Widgets (Upcoming Orders, Top Debtors, Alerts Panel) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Upcoming Orders (4 cols) */}
-          <div className="lg:col-span-4 rounded-lg border border-border bg-card p-3 shadow-2xs space-y-2">
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                Workshop Deliveries Due
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentPage('orders')}
-                className="h-6 text-[10px] text-muted-foreground hover:text-foreground"
+      {/* 3. Status Overview (4 status cards with colored icon bubbles) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {statusCards.map((card, index) => (
+          <Card key={`status-card-${index}`} className="border-border">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div
+                className={`size-12 rounded-full grid place-items-center shrink-0 ${card.className}`}
               >
-                View All
-              </Button>
-            </div>
+                {card.icon}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm text-muted-foreground font-medium">
+                  {card.title}
+                </span>
+                <span className="text-2xl font-bold text-foreground tracking-tight">
+                  {card.value}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-            <div className="space-y-1.5 overflow-y-auto max-h-56">
-              {upcomingOrders.map((o) => (
-                <div key={o.id} className="p-2 rounded border border-border bg-muted/30 text-xs space-y-0.5">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-foreground truncate max-w-[170px]">{o.itemDescription}</span>
-                    <Badge variant="outline" className="text-[9px] font-mono">{o.deliveryDate}</Badge>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground flex justify-between">
-                    <span>{o.customerName}</span>
-                    <span className="font-mono font-semibold">{formatGrams(o.weightRequiredMg)}g</span>
-                  </div>
-                </div>
-              ))}
+      {/* 4. Dashboard Charts (2 Side-by-Side Charts) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Weekly Sales Volume */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between pb-4 border-b border-border">
+            <div>
+              <h3 className="font-semibold text-base text-foreground">Weekly Revenue Trend</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Daily PKR sales over the past 7 days</p>
             </div>
+            <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded-full">
+              +18.4% this week
+            </span>
           </div>
-
-          {/* Top Debtors by Balance (4 cols) */}
-          <div className="lg:col-span-4 rounded-lg border border-border bg-card p-3 shadow-2xs space-y-2">
-            <div className="flex justify-between items-center border-b border-border pb-2">
-              <span className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                Top Customer Debit Dues
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentPage('customers')}
-                className="h-6 text-[10px] text-muted-foreground hover:text-foreground"
-              >
-                Ledger
-              </Button>
-            </div>
-
-            <div className="space-y-1.5 overflow-y-auto max-h-56">
-              {topDebtors.map((c) => (
-                <div
-                  key={c.id}
-                  onClick={() => {
-                    setSelectedCustomerIdForDetail(c.id)
-                    setCurrentPage('customers')
-                  }}
-                  className="p-2 rounded border border-border bg-muted/30 text-xs hover:bg-muted/70 cursor-pointer transition-colors flex justify-between items-center"
-                >
-                  <div>
-                    <div className="font-medium text-foreground">{c.name}</div>
-                    <div className="text-[10px] text-muted-foreground font-mono">{c.phone}</div>
-                  </div>
-                  <div className="text-right font-mono">
-                    <div className="font-bold text-foreground">{formatMoney(c.cashBalancePkr)}</div>
-                    {c.goldBalanceMg > 0 && (
-                      <div className="text-[10px] text-muted-foreground">{formatGrams(c.goldBalanceMg)}g Au</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="h-64 w-full pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklySalesData}>
+                <defs>
+                  <linearGradient id="chartEmeraldGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
+                />
+                <Tooltip
+                  formatter={(v: any) => [`Rs ${v.toLocaleString()}`, 'Sales PKR']}
+                  contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: '#e2e8f0' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="#16a34a"
+                  strokeWidth={2.5}
+                  fill="url(#chartEmeraldGrad)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
+        </Card>
 
-          {/* Alerts & System Status (4 cols) */}
-          <div className="lg:col-span-4 rounded-lg border border-border bg-card p-3 shadow-2xs space-y-2">
-            <div className="border-b border-border pb-2">
-              <span className="font-bold text-xs uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-                Live System Status
-              </span>
+        {/* Best Sellers by Category */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between pb-4 border-b border-border">
+            <div>
+              <h3 className="font-semibold text-base text-foreground">Stock Distribution by Karat</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Inventory holdings in pure gold weight</p>
             </div>
+            <span className="text-xs font-semibold px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
+              2,662g In Vault
+            </span>
+          </div>
+          <div className="h-64 w-full pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={bestSellersData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}g`} />
+                <YAxis dataKey="category" type="category" width={150} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  formatter={(v: any) => [`${v} grams`, 'Holdings']}
+                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                />
+                <Bar dataKey="grams" fill="#16a34a" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
 
-            <div className="space-y-2 text-xs">
-              <div className="p-2.5 rounded bg-muted/40 border border-border space-y-0.5">
-                <div className="font-semibold text-foreground flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  Mandi Live Feeds Active
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Today 24K benchmark rate set to Rs {mandi.pkrPerTola24k.toLocaleString()}/tola.
-                </p>
-              </div>
+      {/* 5. Recent Orders Table (Matching ecommerce-admin DataTable style) */}
+      <div className="space-y-4">
+        <PageTitle
+          description="Recent client transactions, invoices, and custom Karigar orders."
+          action={
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage('bills')}
+              size="sm"
+            >
+              View All Invoices
+            </Button>
+          }
+        >
+          Recent Orders
+        </PageTitle>
 
-              <div className="p-2.5 rounded bg-muted/40 border border-border space-y-0.5">
-                <div className="font-semibold text-foreground flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  GSM SMS Gateway Connected
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Automatic transaction receipts dispatched via SIM modem COM4.
-                </p>
-              </div>
-
-              <div className="p-2.5 rounded bg-muted/40 border border-border space-y-0.5">
-                <div className="font-semibold text-foreground flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  Dual Ledger Integrity Verified
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Gold weights in integer milligrams and PKR cash books fully balanced.
-                </p>
-              </div>
-            </div>
+        <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                <tr>
+                  <th className="px-6 py-4">Invoice / Order #</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Item Details</th>
+                  <th className="px-6 py-4">Net Weight</th>
+                  <th className="px-6 py-4">Amount (PKR)</th>
+                  <th className="px-6 py-4">Payment</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {bills.slice(0, 5).map((bill) => (
+                  <tr key={bill.id} className="hover:bg-muted/40 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-foreground">
+                      {bill.billNo}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      {bill.customerName}
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {bill.items.map(i => i.description).join(', ')}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      {formatGrams(bill.netWeightMg)}g
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-foreground">
+                      {formatMoney(bill.totalPricePkr)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs uppercase font-medium text-muted-foreground">
+                        {bill.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant="success">
+                        Delivered
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCurrentPage('bills')}
+                        className="h-8 gap-1.5 text-xs text-primary hover:text-primary hover:bg-primary/10"
+                      >
+                        <Eye className="size-3.5" /> Details
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   )
 }
+export default DashboardPage

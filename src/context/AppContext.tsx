@@ -17,6 +17,8 @@ import {
   ExpenseEntry,
   UserAccount,
   AppSettings,
+  DigitalScaleState,
+  CustomerDisplayState,
 } from '@/lib/types'
 import {
   INITIAL_SETTINGS,
@@ -120,6 +122,29 @@ interface AppContextType {
   setUnitMode: (m: 'auto' | 'grams' | 'tola') => void
   metalMode: 'gold' | 'silver'
   setMetalMode: (m: 'gold' | 'silver') => void
+
+  // Mode & Security
+  appMode: 'pos' | 'backoffice'
+  setAppMode: (m: 'pos' | 'backoffice') => void
+  switchToBackOffice: () => void
+  switchToPos: () => void
+  managerAuthOpen: boolean
+  setManagerAuthOpen: (open: boolean) => void
+  isManagerUnlocked: boolean
+  setIsManagerUnlocked: (u: boolean) => void
+
+  // Digital Scale Hardware
+  scaleState: DigitalScaleState
+  setScaleState: React.Dispatch<React.SetStateAction<DigitalScaleState>>
+  tareScale: () => void
+  setSimulatedScaleWeight: (weightMg: number) => void
+
+  // Customer Facing Display (Dual Screen)
+  customerDisplayState: CustomerDisplayState
+  updateCustomerDisplay: (data: Partial<CustomerDisplayState>) => void
+  openCustomerDisplayWindow: () => void
+  showCustomerDisplayPip: boolean
+  setShowCustomerDisplayPip: (show: boolean) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -159,6 +184,97 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [unitMode, setUnitMode] = useState<'auto' | 'grams' | 'tola'>('auto')
   const [metalMode, setMetalMode] = useState<'gold' | 'silver'>('gold')
+
+  // Mode & Security
+  const [appMode, setAppMode] = useState<'pos' | 'backoffice'>('pos')
+  const [managerAuthOpen, setManagerAuthOpen] = useState(false)
+  const [isManagerUnlocked, setIsManagerUnlocked] = useState(false)
+
+  const switchToBackOffice = () => {
+    if (!isManagerUnlocked) {
+      setManagerAuthOpen(true)
+    } else {
+      setAppMode('backoffice')
+      setCurrentPage('dashboard')
+    }
+  }
+
+  const switchToPos = () => {
+    setAppMode('pos')
+    setCurrentPage('billing')
+  }
+
+  // Digital Scale Hardware
+  const [scaleState, setScaleState] = useState<DigitalScaleState>({
+    weightMg: 11664, // 1 tola default
+    isStable: true,
+    isTare: false,
+    isConnected: true,
+    scaleUnit: 'grams',
+    port: 'USB / RS-232 (COM3)',
+    modelName: 'Mettler Toledo JE503G Gold Scale'
+  })
+
+  const tareScale = () => {
+    setScaleState(prev => ({
+      ...prev,
+      isTare: true,
+      weightMg: 0,
+      isStable: true
+    }))
+  }
+
+  const setSimulatedScaleWeight = (weightMg: number) => {
+    setScaleState(prev => ({
+      ...prev,
+      weightMg,
+      isTare: false,
+      isStable: true
+    }))
+    updateCustomerDisplay({ scaleWeightMg: weightMg, scaleIsStable: true })
+  }
+
+  // Customer Facing Display (Dual Screen)
+  const [customerDisplayState, setCustomerDisplayState] = useState<CustomerDisplayState>({
+    shopName: INITIAL_SETTINGS.shopName,
+    mandiRate24k: INITIAL_MANDI.pkrPerTola24k,
+    mandiRate22k: INITIAL_MANDI.pkrPerTola22k || Math.round(INITIAL_MANDI.pkrPerTola24k * (22 / 24)),
+    customerName: 'Walk-in Valued Customer',
+    activeItem: null,
+    items: [],
+    totalGrossMg: 0,
+    totalNetMg: 0,
+    totalAmountPkr: 0,
+    wasoolPkr: 0,
+    balancePkr: 0,
+    scaleWeightMg: 11664,
+    scaleIsStable: true,
+    lastUpdated: new Date().toLocaleTimeString(),
+  })
+  const [showCustomerDisplayPip, setShowCustomerDisplayPip] = useState(false)
+
+  const updateCustomerDisplay = (data: Partial<CustomerDisplayState>) => {
+    setCustomerDisplayState(prev => {
+      const next = { ...prev, ...data, lastUpdated: new Date().toLocaleTimeString() }
+      try {
+        const channel = new BroadcastChannel('islam_jewellers_cfd')
+        channel.postMessage(next)
+        channel.close()
+      } catch (e) {}
+      try {
+        localStorage.setItem('islam_jewellers_cfd_state', JSON.stringify(next))
+      } catch (e) {}
+      return next
+    })
+  }
+
+  const openCustomerDisplayWindow = () => {
+    const url = window.location.origin + window.location.pathname + '?mode=customer-display'
+    const newWin = window.open(url, 'IslamJewellersCustomerDisplay', 'width=1280,height=800,menubar=no,toolbar=no,location=no,status=no')
+    if (!newWin) {
+      setShowCustomerDisplayPip(true)
+    }
+  }
 
   // Dark/Light theme class effect
   useEffect(() => {
@@ -441,6 +557,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUnitMode,
         metalMode,
         setMetalMode,
+        appMode,
+        setAppMode,
+        switchToBackOffice,
+        switchToPos,
+        managerAuthOpen,
+        setManagerAuthOpen,
+        isManagerUnlocked,
+        setIsManagerUnlocked,
+        scaleState,
+        setScaleState,
+        tareScale,
+        setSimulatedScaleWeight,
+        customerDisplayState,
+        updateCustomerDisplay,
+        openCustomerDisplayWindow,
+        showCustomerDisplayPip,
+        setShowCustomerDisplayPip,
       }}
     >
       {children}

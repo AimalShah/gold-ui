@@ -229,7 +229,7 @@ export const WeightInput: React.FC<WeightInputProps> = ({
               compact ? "text-xs" : "text-base"
             )}
           />
-          <span className="absolute right-1 text-[10px] text-muted-foreground select-none uppercase font-sans font-bold">
+          <span className="absolute right-1.5 text-xs text-muted-foreground select-none uppercase font-sans font-bold">
             T
           </span>
         </div>
@@ -251,7 +251,7 @@ export const WeightInput: React.FC<WeightInputProps> = ({
               compact ? "text-xs" : "text-base"
             )}
           />
-          <span className="absolute right-1 text-[10px] text-muted-foreground select-none uppercase font-sans font-bold">
+          <span className="absolute right-1.5 text-xs text-muted-foreground select-none uppercase font-sans font-bold">
             M
           </span>
         </div>
@@ -273,7 +273,7 @@ export const WeightInput: React.FC<WeightInputProps> = ({
               compact ? "text-xs" : "text-base"
             )}
           />
-          <span className="absolute right-1 text-[10px] text-muted-foreground select-none uppercase font-sans font-bold">
+          <span className="absolute right-1.5 text-xs text-muted-foreground select-none uppercase font-sans font-bold">
             R
           </span>
         </div>
@@ -295,7 +295,7 @@ export const WeightInput: React.FC<WeightInputProps> = ({
               compact ? "text-xs" : "text-base"
             )}
           />
-          <span className="absolute right-1 text-[10px] text-foreground select-none uppercase font-sans font-bold">
+          <span className="absolute right-1.5 text-xs text-foreground select-none uppercase font-sans font-bold">
             g
           </span>
         </div>

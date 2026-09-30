@@ -6,6 +6,8 @@ import { WeightInput } from '@/components/shared/WeightInput'
 import { cn } from '@/lib/utils'
 import { MoneyInput } from '@/components/shared/MoneyInput'
 import { KaratBadge } from '@/components/shared/KaratBadge'
+import { PageTitle } from '@/components/shared/PageTitle'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,17 +41,16 @@ import {
   QrCode,
   Tag,
   Search,
-  ArrowRightLeft,
-  Users,
   CheckCircle,
   AlertTriangle,
-  Flame,
   Printer,
   Package,
   LayoutGrid,
   List,
   Eye,
+  Download,
   Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -57,7 +58,6 @@ export const InventoryPage: React.FC = () => {
   const {
     inventoryItems,
     addInventoryItem,
-    updateInventoryStatus,
     rawStock,
     addRawStockLot,
     movements,
@@ -65,11 +65,12 @@ export const InventoryPage: React.FC = () => {
     mandi,
   } = useApp()
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'items' | 'raw' | 'movements' | 'karigar' | 'stocktake' | 'labels'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'items' | 'raw' | 'movements' | 'karigar' | 'stocktake'>('items')
 
   // Search & Filters for Finished Items
   const [itemSearch, setItemSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [karatFilter, setKaratFilter] = useState('all')
   const [itemViewMode, setItemViewMode] = useState<'grid' | 'table'>('grid')
   const [previewImage, setPreviewImage] = useState<{ url: string; name: string; tag: string } | null>(null)
 
@@ -107,13 +108,14 @@ export const InventoryPage: React.FC = () => {
       item.barcode.includes(itemSearch)
     if (!matches) return false
     if (categoryFilter !== 'all' && item.category !== categoryFilter) return false
+    if (karatFilter !== 'all' && item.karat.toString() !== karatFilter) return false
     return true
   })
 
   const handleCreateItem = (e: React.FormEvent) => {
     e.preventDefault()
     if (!itemName.trim()) {
-      toast.error("Please enter item name.")
+      toast.error("Please enter product name.")
       return
     }
 
@@ -134,7 +136,7 @@ export const InventoryPage: React.FC = () => {
       image: itemImage.trim() || undefined,
     })
 
-    toast.success(`Inventory Item ${created.tagSku} added to stock!`)
+    toast.success(`Product ${created.tagSku} added to inventory!`)
     setNewItemOpen(false)
     setItemName('')
     setItemImage('')
@@ -170,6 +172,10 @@ export const InventoryPage: React.FC = () => {
     setScanInput('')
   }
 
+  const handleExport = () => {
+    toast.success("Exporting products catalogue as CSV...")
+  }
+
   // Calculate Totals for Overview
   const totalFinishedGrossMg = inventoryItems.filter(i => i.status === 'in_stock').reduce((sum, i) => sum + i.grossWeightMg, 0)
   const totalFinishedNetMg = inventoryItems.filter(i => i.status === 'in_stock').reduce((sum, i) => sum + i.netWeightMg, 0)
@@ -179,287 +185,194 @@ export const InventoryPage: React.FC = () => {
   const totalInventoryValuePkr = Math.round(((totalRawFineGoldMg + totalFinishedNetMg) / 11664) * mandi.pkrPerTola24k)
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      {/* Top Header */}
-      <div className="h-12 border-b px-4 flex items-center justify-between bg-card/60 select-none shrink-0">
-        <div className="flex items-center gap-2">
-          <Boxes className="h-5 w-5 text-amber-600" />
-          <h1 className="font-bold text-sm text-foreground">Jewellery Inventory & Raw Bullion Stock (NEW)</h1>
-        </div>
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-6 space-y-6">
+      {/* 1. Header with PageTitle and Action buttons */}
+      <PageTitle
+        description="Comprehensive catalogue of jewellery pieces, bullion bars, and Karigar alloy stock."
+        action={
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setRawStockOpen(true)}
+              className="gap-2"
+            >
+              <Plus className="size-4" /> Add Raw Bullion
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => setNewItemOpen(true)}
+              className="gap-2 font-medium"
+            >
+              <Plus className="size-4" /> Add Product
+            </Button>
+          </div>
+        }
+      >
+        Products & Inventory
+      </PageTitle>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setRawStockOpen(true)}
-            className="h-8 text-xs gap-1.5 font-semibold"
-          >
-            <Plus className="h-3.5 w-3.5 text-amber-600" />
-            Add Raw Bullion
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={() => setNewItemOpen(true)}
-            className="h-8 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5"
-          >
-            <Tag className="h-3.5 w-3.5" />
-            New Jewellery Item
-          </Button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-4 border-b bg-card/30">
-          <TabsList className="h-10 bg-transparent p-0 gap-4">
-            <TabsTrigger value="overview" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Overview & KPIs
-            </TabsTrigger>
-            <TabsTrigger value="items" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Finished Jewellery ({inventoryItems.length})
-            </TabsTrigger>
-            <TabsTrigger value="raw" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Raw Bullion Lots ({rawStock.length})
-            </TabsTrigger>
-            <TabsTrigger value="movements" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Movements Ledger ({movements.length})
-            </TabsTrigger>
-            <TabsTrigger value="karigar" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Karigar Held Metal
-            </TabsTrigger>
-            <TabsTrigger value="stocktake" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Stock-take Scan
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        {/* TAB 1: Overview */}
-        <TabsContent value="overview" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div className="p-3.5 rounded-lg border bg-card shadow-xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Total Fine Gold (24K)</span>
-              <div className="text-xl font-mono font-bold text-foreground">
-                {formatGrams(totalRawFineGoldMg + totalFinishedNetMg)} g
-              </div>
-              <span className="text-[11px] font-mono text-muted-foreground">{formatTMR(totalRawFineGoldMg + totalFinishedNetMg)}</span>
-            </div>
-
-            <div className="p-3.5 rounded-lg border border-border bg-card shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Raw Bullion Gold</span>
-              <div className="text-xl font-mono font-bold text-foreground">
-                {formatGrams(totalRawGoldMg)} g
-              </div>
-              <span className="text-[11px] text-muted-foreground">{rawStock.length} Active Lots</span>
-            </div>
-
-            <div className="p-3.5 rounded-lg border border-border bg-card shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Finished Jewellery</span>
-              <div className="text-xl font-mono font-bold text-foreground">
-                {inventoryItems.filter(i => i.status === 'in_stock').length} Items
-              </div>
-              <span className="text-[11px] text-muted-foreground">Net Wt: {formatGrams(totalFinishedNetMg)}g</span>
-            </div>
-
-            <div className="p-3.5 rounded-lg border border-border bg-card shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Chandi / Silver</span>
-              <div className="text-xl font-mono font-bold text-foreground">
-                {formatGrams(totalSilverMg)} g
-              </div>
-              <span className="text-[11px] text-muted-foreground">500 Tolas Bullion</span>
-            </div>
-
-            <div className="p-3.5 rounded-lg border border-border bg-card shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Total Stock Value</span>
-              <div className="text-xl font-mono font-bold text-foreground">
-                {formatMoney(totalInventoryValuePkr)}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">@ Mandi Rs {mandi.pkrPerTola24k.toLocaleString()}</span>
-            </div>
+      {/* 2. Top Action Bar Card (Matching ProductActions in ecommerce-admin) */}
+      <Card className="p-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="gap-2 text-xs"
+            >
+              <Download className="size-3.5" /> Export Products CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toast.success("Printing barcode catalog...")}
+              className="gap-2 text-xs"
+            >
+              <Printer className="size-3.5" /> Print Catalog
+            </Button>
           </div>
 
-          {/* Visual Showcase Strip of Finished Inventory */}
-          <div className="rounded-xl border border-border bg-card p-4 space-y-3 shadow-2xs">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <div>
-                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">
-                  Showcase Jewellery Stock
-                </h3>
-                <p className="text-[11px] text-muted-foreground">High-value finished inventory in showroom display</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveTab('items')}
-                className="text-xs text-foreground font-semibold"
+          {/* View mode toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground mr-1 font-medium">
+              Showing {filteredItems.length} Products
+            </span>
+            <div className="flex rounded-md border border-border bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setItemViewMode('grid')}
+                className={cn(
+                  "p-1.5 rounded text-xs transition-colors",
+                  itemViewMode === 'grid'
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title="Gallery View"
               >
-                View All {inventoryItems.length} Items →
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
-              {inventoryItems.slice(0, 7).map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (item.image) setPreviewImage({ url: item.image, name: item.name, tag: item.tagSku })
-                  }}
-                  className="rounded-lg border border-border bg-muted/20 overflow-hidden hover:border-foreground/40 transition-all cursor-pointer group"
-                >
-                  <div className="aspect-square w-full bg-muted/50 overflow-hidden relative">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <Package className="h-6 w-6 stroke-1" />
-                      </div>
-                    )}
-                    <span className="absolute top-1 left-1 font-mono text-[9px] font-bold px-1 py-0.2 rounded bg-background/90 text-foreground border border-border">
-                      {item.karat}K
-                    </span>
-                  </div>
-                  <div className="p-2 space-y-0.5">
-                    <p className="text-[11px] font-semibold text-foreground truncate" title={item.name}>
-                      {item.name}
-                    </p>
-                    <p className="text-[10px] font-mono text-muted-foreground">
-                      {formatGrams(item.netWeightMg)}g Net
-                    </p>
-                  </div>
-                </div>
-              ))}
+                <LayoutGrid className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setItemViewMode('table')}
+                className={cn(
+                  "p-1.5 rounded text-xs transition-colors",
+                  itemViewMode === 'table'
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title="Table View"
+              >
+                <List className="size-4" />
+              </button>
             </div>
           </div>
+        </div>
+      </Card>
 
-          {/* Recent movements table preview */}
-          <div className="rounded-lg border bg-card p-4 space-y-3">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground border-b pb-2 flex items-center justify-between">
-              <span>Recent Inventory Stock Movements</span>
-              <span className="text-[11px] text-amber-700 font-mono">Real-time ledger</span>
-            </h3>
-
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2 px-3">Date</th>
-                  <th className="py-2 px-3">Type</th>
-                  <th className="py-2 px-3">Item / Lot</th>
-                  <th className="py-2 px-3 text-right">Weight In</th>
-                  <th className="py-2 px-3 text-right">Weight Out</th>
-                  <th className="py-2 px-3">Ref</th>
-                  <th className="py-2 px-3">Operator</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {movements.map((m) => (
-                  <tr key={m.id}>
-                    <td className="py-2 px-3 font-sans text-muted-foreground">{m.date}</td>
-                    <td className="py-2 px-3 font-sans">
-                      <Badge variant="outline" className={m.type === 'Purchase' ? 'text-emerald-700' : 'text-blue-700'}>
-                        {m.type}
-                      </Badge>
-                    </td>
-                    <td className="py-2 px-3 font-sans font-medium text-foreground">{m.itemOrLot}</td>
-                    <td className="py-2 px-3 text-right text-emerald-700">{m.weightInMg ? `${formatGrams(m.weightInMg)}g` : '—'}</td>
-                    <td className="py-2 px-3 text-right text-red-600">{m.weightOutMg ? `${formatGrams(m.weightOutMg)}g` : '—'}</td>
-                    <td className="py-2 px-3 text-amber-700">{m.ref}</td>
-                    <td className="py-2 px-3 text-muted-foreground font-sans">{m.user}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-
-        {/* TAB 2: Finished Jewellery Items */}
-        <TabsContent value="items" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-lg border border-border">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search tag SKU, barcode, item name..."
-                  value={itemSearch}
-                  onChange={(e) => setItemSearch(e.target.value)}
-                  className="pl-9 h-8 text-xs font-medium"
-                />
-              </div>
-
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="h-8 w-36 text-xs">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Ring">Rings</SelectItem>
-                  <SelectItem value="Necklace">Necklaces</SelectItem>
-                  <SelectItem value="Bangle">Bangles</SelectItem>
-                  <SelectItem value="Chain">Chains</SelectItem>
-                  <SelectItem value="Earring">Earrings</SelectItem>
-                  <SelectItem value="Set">Bridal Sets</SelectItem>
-                  <SelectItem value="Other">Bullion & Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-mono">
-                {filteredItems.length} Items Found
-              </span>
-
-              {/* View Mode Toggle: Grid vs Table */}
-              <div className="flex rounded-md border border-border bg-muted p-0.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setItemViewMode('grid')}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer",
-                    itemViewMode === 'grid'
-                      ? "bg-background text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                  title="Gallery Cards View with Product Photos"
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                  <span>Gallery</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setItemViewMode('table')}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer",
-                    itemViewMode === 'table'
-                      ? "bg-background text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                  title="List Table View"
-                >
-                  <List className="h-3.5 w-3.5" />
-                  <span>Table</span>
-                </button>
-              </div>
-            </div>
+      {/* 3. Product Filters Card (Matching ProductFilters in ecommerce-admin) */}
+      <Card className="p-4">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          {/* Search input */}
+          <div className="relative w-full md:basis-[40%]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search product SKU, barcode, name..."
+              className="h-11 pl-10"
+              value={itemSearch}
+              onChange={(e) => setItemSearch(e.target.value)}
+            />
           </div>
 
-          {/* VIEW 1: GALLERY GRID WITH IMAGES */}
+          {/* Category dropdown */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="h-11 md:basis-[25%]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="Ring">Rings</SelectItem>
+              <SelectItem value="Necklace">Necklaces</SelectItem>
+              <SelectItem value="Bangle">Bangles / Karas</SelectItem>
+              <SelectItem value="Earring">Earrings</SelectItem>
+              <SelectItem value="Chain">Chains</SelectItem>
+              <SelectItem value="Set">Bridal Sets</SelectItem>
+              <SelectItem value="Other">Bullion & Other</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Purity Karat dropdown */}
+          <Select value={karatFilter} onValueChange={setKaratFilter}>
+            <SelectTrigger className="h-11 md:basis-[20%]">
+              <SelectValue placeholder="All Purity Karats" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Purity Karats</SelectItem>
+              <SelectItem value="24">24K Fine Gold</SelectItem>
+              <SelectItem value="22">22K Standard</SelectItem>
+              <SelectItem value="21">21K Arabian</SelectItem>
+              <SelectItem value="18">18K Diamond</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Reset button */}
+          <div className="flex gap-2 w-full md:basis-[15%]">
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-11 w-full"
+              onClick={() => {
+                setItemSearch('')
+                setCategoryFilter('all')
+                setKaratFilter('all')
+              }}
+            >
+              Reset
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* 4. Tab Navigation for Finished Items, Raw Stock, Movements, Karigar, Stocktake */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <TabsList className="bg-card border border-border p-1 rounded-lg">
+          <TabsTrigger value="items" className="text-xs font-medium">
+            Finished Products ({inventoryItems.length})
+          </TabsTrigger>
+          <TabsTrigger value="overview" className="text-xs font-medium">
+            Stock Valuation & KPIs
+          </TabsTrigger>
+          <TabsTrigger value="raw" className="text-xs font-medium">
+            Raw Bullion Lots ({rawStock.length})
+          </TabsTrigger>
+          <TabsTrigger value="movements" className="text-xs font-medium">
+            Movements Ledger ({movements.length})
+          </TabsTrigger>
+          <TabsTrigger value="karigar" className="text-xs font-medium">
+            Karigar Allocations ({karigars.length})
+          </TabsTrigger>
+          <TabsTrigger value="stocktake" className="text-xs font-medium">
+            Stock-Take Barcode Audit
+          </TabsTrigger>
+        </TabsList>
+
+        {/* TAB 1: FINISHED PRODUCTS */}
+        <TabsContent value="items" className="pt-4">
           {itemViewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            /* Gallery Cards View */
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredItems.map((item) => (
-                <div
+                <Card
                   key={item.id}
-                  className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs hover:shadow-md transition-all group flex flex-col justify-between"
+                  className="overflow-hidden border border-border hover:shadow-md transition-shadow flex flex-col justify-between group p-0"
                 >
                   <div>
-                    {/* Image Header with Zoom on Click */}
+                    {/* Image Header with Zoom preview */}
                     <div
                       onClick={() => item.image && setPreviewImage({ url: item.image, name: item.name, tag: item.tagSku })}
-                      className="relative aspect-4/3 w-full bg-muted/40 overflow-hidden cursor-pointer flex items-center justify-center border-b border-border/80"
+                      className="relative aspect-4/3 w-full bg-muted/40 overflow-hidden cursor-pointer flex items-center justify-center border-b border-border"
                     >
                       {item.image ? (
                         <img
@@ -470,252 +383,311 @@ export const InventoryPage: React.FC = () => {
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center text-muted-foreground/60">
-                          <Package className="h-10 w-10 stroke-1" />
-                          <span className="text-[10px] mt-1 font-mono">No Photo</span>
+                          <Package className="size-10 stroke-1" />
+                          <span className="text-xs mt-1">No Image</span>
                         </div>
                       )}
 
                       {/* Top Badges */}
-                      <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5">
                         <KaratBadge karat={item.karat} size="sm" />
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-background/90 text-foreground border border-border shadow-xs font-bold">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-background/90 text-foreground border border-border shadow-xs">
                           {item.category}
                         </span>
                       </div>
 
-                      <div className="absolute top-2 right-2">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] font-mono bg-background/90 border-border",
-                            item.status === 'in_stock' ? "text-emerald-700 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
-                          )}
-                        >
-                          {item.status === 'in_stock' ? 'In Stock' : item.status}
+                      <div className="absolute top-3 right-3">
+                        <Badge variant="success">
+                          Selling
                         </Badge>
                       </div>
 
                       {item.image && (
-                        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 text-foreground px-2 py-1 rounded text-[10px] flex items-center gap-1 font-medium shadow-xs border border-border">
-                          <Eye className="h-3 w-3" /> Zoom
+                        <div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 text-foreground px-2 py-1 rounded text-xs flex items-center gap-1 font-medium shadow-xs border border-border">
+                          <Eye className="size-3.5" /> Preview
                         </div>
                       )}
                     </div>
 
                     {/* Card Content */}
-                    <div className="p-4 space-y-3">
+                    <div className="p-5 space-y-3">
                       <div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-mono text-[11px] text-muted-foreground">{item.tagSku}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono truncate max-w-[120px]">{item.locationTray}</span>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                          <span>{item.tagSku}</span>
+                          <span>{item.locationTray}</span>
                         </div>
-                        <h4 className="font-bold text-sm text-foreground tracking-tight line-clamp-1 mt-0.5" title={item.name}>
+                        <h4 className="font-semibold text-base text-foreground tracking-tight line-clamp-1 mt-1" title={item.name}>
                           {item.name}
                         </h4>
                       </div>
 
-                      {/* Weight pill */}
-                      <div className="grid grid-cols-2 gap-2 text-xs font-mono p-2.5 rounded-lg bg-muted/40 border border-border">
+                      {/* Weight Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs p-3 rounded-lg bg-muted/50 border border-border">
                         <div>
-                          <span className="text-[10px] text-muted-foreground font-sans block">Net Gold Wt</span>
-                          <span className="font-bold text-foreground text-sm">{formatGrams(item.netWeightMg)}g</span>
+                          <span className="text-muted-foreground block text-[11px]">Net Gold</span>
+                          <span className="font-semibold text-foreground text-sm">{formatGrams(item.netWeightMg)}g</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] text-muted-foreground font-sans block">Gross Wt</span>
-                          <span className="text-muted-foreground">{formatGrams(item.grossWeightMg)}g</span>
+                          <span className="text-muted-foreground block text-[11px]">Gross Wt</span>
+                          <span className="text-foreground">{formatGrams(item.grossWeightMg)}g</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs pt-0.5">
+                      <div className="flex items-center justify-between text-xs pt-1">
                         <span className="text-muted-foreground">Making Charges:</span>
-                        <span className="font-mono font-semibold text-foreground">
+                        <span className="font-semibold text-foreground">
                           {formatMoney(item.makingChargesPkr)}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Card Bottom Actions */}
+                  {/* Card Footer Actions */}
                   <div className="p-3 border-t border-border bg-muted/20 flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedItemForLabel(item)}
-                      className="flex-1 h-8 text-xs font-semibold gap-1.5 cursor-pointer"
+                      className="w-full text-xs font-semibold gap-1.5"
                     >
-                      <QrCode className="h-3.5 w-3.5 text-muted-foreground" />
-                      Print Tag
+                      <QrCode className="size-3.5" /> Print Barcode Tag
                     </Button>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           ) : (
-            /* VIEW 2: STRUCTURED TABLE WITH THUMBNAILS */
-            <div className="rounded-lg border bg-card overflow-hidden">
-              <table className="w-full text-left text-xs border-collapse font-sans">
-                <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
+            /* Table View */
+            <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                    <tr>
+                      <th className="px-6 py-4">Image</th>
+                      <th className="px-6 py-4">SKU / Tag</th>
+                      <th className="px-6 py-4">Product Name</th>
+                      <th className="px-6 py-4">Category</th>
+                      <th className="px-6 py-4">Purity</th>
+                      <th className="px-6 py-4 text-right">Net Wt</th>
+                      <th className="px-6 py-4 text-right">Gross Wt</th>
+                      <th className="px-6 py-4 text-right">Making</th>
+                      <th className="px-6 py-4">Location</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-muted/40 transition-colors">
+                        <td className="px-6 py-4">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              onClick={() => setPreviewImage({ url: item.image!, name: item.name, tag: item.tagSku })}
+                              className="size-11 rounded-lg object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="size-11 rounded-lg bg-muted flex items-center justify-center text-muted-foreground border border-border">
+                              <ImageIcon className="size-5" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-semibold text-foreground">
+                          {item.tagSku}
+                        </td>
+                        <td className="px-6 py-4 font-medium text-foreground">
+                          {item.name}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground">
+                          {item.category}
+                        </td>
+                        <td className="px-6 py-4">
+                          <KaratBadge karat={item.karat} size="sm" />
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold text-foreground">
+                          {formatGrams(item.netWeightMg)}g
+                        </td>
+                        <td className="px-6 py-4 text-right text-muted-foreground">
+                          {formatGrams(item.grossWeightMg)}g
+                        </td>
+                        <td className="px-6 py-4 text-right font-medium text-foreground">
+                          {formatMoney(item.makingChargesPkr)}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground text-xs">
+                          {item.locationTray}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant="success">
+                            Selling
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedItemForLabel(item)}
+                            className="gap-1.5 text-xs text-primary hover:text-primary hover:bg-primary/10"
+                          >
+                            <QrCode className="size-3.5" /> Print Tag
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* TAB 2: OVERVIEW & KPIS */}
+        <TabsContent value="overview" className="pt-4 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Card className="p-5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Total Fine Gold (24K)</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {formatGrams(totalRawFineGoldMg + totalFinishedNetMg)} g
+              </p>
+              <span className="text-xs text-muted-foreground font-mono">{formatTMR(totalRawFineGoldMg + totalFinishedNetMg)}</span>
+            </Card>
+
+            <Card className="p-5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Raw Bullion Gold</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {formatGrams(totalRawGoldMg)} g
+              </p>
+              <span className="text-xs text-muted-foreground">{rawStock.length} Active Lots</span>
+            </Card>
+
+            <Card className="p-5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Finished Items</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {inventoryItems.length} Pieces
+              </p>
+              <span className="text-xs text-muted-foreground">Net Wt: {formatGrams(totalFinishedNetMg)}g</span>
+            </Card>
+
+            <Card className="p-5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Silver (Chandi)</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {formatGrams(totalSilverMg)} g
+              </p>
+              <span className="text-xs text-muted-foreground">500 Tolas Bullion</span>
+            </Card>
+
+            <Card className="p-5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Stock Valuation</span>
+              <p className="text-2xl font-bold text-primary mt-1">
+                {formatMoney(totalInventoryValuePkr)}
+              </p>
+              <span className="text-xs text-muted-foreground">@ Rs {mandi.pkrPerTola24k.toLocaleString()}/tola</span>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* TAB 3: RAW BULLION */}
+        <TabsContent value="raw" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
                   <tr>
-                    <th className="py-2.5 px-3">Photo</th>
-                    <th className="py-2.5 px-3">SKU / Tag</th>
-                    <th className="py-2.5 px-3">Barcode</th>
-                    <th className="py-2.5 px-3">Item Name</th>
-                    <th className="py-2.5 px-3">Category</th>
-                    <th className="py-2.5 px-3">Karat</th>
-                    <th className="py-2.5 px-3 text-right">Gross Wt</th>
-                    <th className="py-2.5 px-3 text-right">Stone Wt</th>
-                    <th className="py-2.5 px-3 text-right font-bold text-foreground">Net Wt (Au)</th>
-                    <th className="py-2.5 px-3 text-right">Making</th>
-                    <th className="py-2.5 px-3">Tray / Location</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-center">Label</th>
+                    <th className="px-6 py-4">Lot #</th>
+                    <th className="px-6 py-4">Metal</th>
+                    <th className="px-6 py-4">Purity</th>
+                    <th className="px-6 py-4 text-right">Gross Weight</th>
+                    <th className="px-6 py-4 text-right">Fine Weight (24K)</th>
+                    <th className="px-6 py-4 text-right">Cost Rate / Tola</th>
+                    <th className="px-6 py-4 text-right">Estimated Value</th>
+                    <th className="px-6 py-4">Last Updated</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/60">
-                  {filteredItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-muted/40 transition-colors">
-                      <td className="py-2 px-3">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            onClick={() => setPreviewImage({ url: item.image!, name: item.name, tag: item.tagSku })}
-                            className="h-10 w-10 rounded-md object-cover border border-border cursor-pointer hover:opacity-80 transition-opacity"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center text-muted-foreground border border-border">
-                            <ImageIcon className="h-4 w-4" />
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 font-mono font-bold text-foreground">{item.tagSku}</td>
-                      <td className="py-2.5 px-3 font-mono text-muted-foreground">{item.barcode}</td>
-                      <td className="py-2.5 px-3 font-medium text-foreground">{item.name}</td>
-                      <td className="py-2.5 px-3">{item.category}</td>
-                      <td className="py-2.5 px-3"><KaratBadge karat={item.karat} size="sm" /></td>
-                      <td className="py-2.5 px-3 font-mono text-right">{formatGrams(item.grossWeightMg)}g</td>
-                      <td className="py-2.5 px-3 font-mono text-right text-muted-foreground">{formatGrams(item.stoneWeightMg)}g</td>
-                      <td className="py-2.5 px-3 font-mono text-right font-bold text-foreground">{formatGrams(item.netWeightMg)}g</td>
-                      <td className="py-2.5 px-3 font-mono text-right text-foreground">{formatMoney(item.makingChargesPkr)}</td>
-                      <td className="py-2.5 px-3 text-muted-foreground">{item.locationTray}</td>
-                      <td className="py-2.5 px-3">
-                        <Badge variant="outline" className={item.status === 'in_stock' ? 'bg-muted text-foreground border-border' : 'bg-muted text-muted-foreground'}>
-                          {item.status === 'in_stock' ? 'In Stock' : item.status}
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setSelectedItemForLabel(item)}
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
-                          title="Print Barcode Tag"
-                        >
-                          <QrCode className="h-4 w-4" />
-                        </Button>
-                      </td>
+                <tbody className="divide-y divide-border">
+                  {rawStock.map((r) => (
+                    <tr key={r.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 font-semibold text-primary">{r.id}</td>
+                      <td className="px-6 py-4 font-medium capitalize">{r.metal}</td>
+                      <td className="px-6 py-4 font-medium">{r.karat}K</td>
+                      <td className="px-6 py-4 text-right font-semibold text-foreground">{formatGrams(r.weightMg)}g</td>
+                      <td className="px-6 py-4 text-right font-semibold text-primary">{formatGrams(r.fineWeightMg)}g</td>
+                      <td className="px-6 py-4 text-right">{formatMoney(r.avgCostPerTolaPkr)}</td>
+                      <td className="px-6 py-4 text-right font-bold text-foreground">{formatMoney(r.valuePkr)}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{r.lastUpdated}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
-        </TabsContent>
-
-        {/* TAB 3: Raw Stock */}
-        <TabsContent value="raw" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">Lot #</th>
-                  <th className="py-2.5 px-3">Metal</th>
-                  <th className="py-2.5 px-3">Purity Karat</th>
-                  <th className="py-2.5 px-3 text-right">Gross Weight</th>
-                  <th className="py-2.5 px-3 text-right">Fine Weight (24K)</th>
-                  <th className="py-2.5 px-3 text-right">Avg Cost / Tola</th>
-                  <th className="py-2.5 px-3 text-right font-bold">Estimated Value</th>
-                  <th className="py-2.5 px-3">Last Updated</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {rawStock.map((r) => (
-                  <tr key={r.id}>
-                    <td className="py-2.5 px-3 font-bold text-amber-700">{r.id}</td>
-                    <td className="py-2.5 px-3 font-sans capitalize font-semibold">{r.metal}</td>
-                    <td className="py-2.5 px-3">{r.karat}K</td>
-                    <td className="py-2.5 px-3 text-right font-bold">{formatGrams(r.weightMg)}g</td>
-                    <td className="py-2.5 px-3 text-right text-amber-700 font-bold">{formatGrams(r.fineWeightMg)}g</td>
-                    <td className="py-2.5 px-3 text-right">{formatMoney(r.avgCostPerTolaPkr)}</td>
-                    <td className="py-2.5 px-3 text-right font-bold text-foreground">{formatMoney(r.valuePkr)}</td>
-                    <td className="py-2.5 px-3 text-muted-foreground text-[11px]">{r.lastUpdated}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </TabsContent>
 
-        {/* TAB 4: Movements */}
-        <TabsContent value="movements" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Item / Bullion Lot</th>
-                  <th className="py-2.5 px-3 text-right">Weight In</th>
-                  <th className="py-2.5 px-3 text-right">Weight Out</th>
-                  <th className="py-2.5 px-3 text-right font-bold">Balance</th>
-                  <th className="py-2.5 px-3">Ref</th>
-                  <th className="py-2.5 px-3">User</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {movements.map((m) => (
-                  <tr key={m.id}>
-                    <td className="py-2.5 px-3 font-sans">{m.date}</td>
-                    <td className="py-2.5 px-3 font-sans font-semibold">{m.type}</td>
-                    <td className="py-2.5 px-3 font-sans">{m.itemOrLot}</td>
-                    <td className="py-2.5 px-3 text-right text-emerald-700">{m.weightInMg ? `${formatGrams(m.weightInMg)}g` : '—'}</td>
-                    <td className="py-2.5 px-3 text-right text-red-600">{m.weightOutMg ? `${formatGrams(m.weightOutMg)}g` : '—'}</td>
-                    <td className="py-2.5 px-3 text-right font-bold">{formatGrams(m.balanceMg)}g</td>
-                    <td className="py-2.5 px-3 text-amber-700">{m.ref}</td>
-                    <td className="py-2.5 px-3 font-sans text-muted-foreground">{m.user}</td>
+        {/* TAB 4: MOVEMENTS */}
+        <TabsContent value="movements" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Type</th>
+                    <th className="px-6 py-4">Item / Bullion Lot</th>
+                    <th className="px-6 py-4 text-right">Weight In</th>
+                    <th className="px-6 py-4 text-right">Weight Out</th>
+                    <th className="px-6 py-4 text-right font-bold">Balance</th>
+                    <th className="px-6 py-4">Reference</th>
+                    <th className="px-6 py-4">Operator</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {movements.map((m) => (
+                    <tr key={m.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 text-muted-foreground">{m.date}</td>
+                      <td className="px-6 py-4">
+                        <Badge variant={m.type === 'Purchase' ? 'success' : 'processing'}>
+                          {m.type}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 font-medium text-foreground">{m.itemOrLot}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-emerald-600">{m.weightInMg ? `${formatGrams(m.weightInMg)}g` : '—'}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-red-600">{m.weightOutMg ? `${formatGrams(m.weightOutMg)}g` : '—'}</td>
+                      <td className="px-6 py-4 text-right font-bold text-foreground">{formatGrams(m.balanceMg)}g</td>
+                      <td className="px-6 py-4 font-mono text-xs text-primary">{m.ref}</td>
+                      <td className="px-6 py-4 text-muted-foreground">{m.user}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </TabsContent>
 
-        {/* TAB 5: Karigar */}
-        <TabsContent value="karigar" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* TAB 5: KARIGAR */}
+        <TabsContent value="karigar" className="pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {karigars.map((k) => (
-              <div key={k.id} className="p-4 rounded-lg border bg-card space-y-3 shadow-xs">
+              <Card key={k.id} className="p-5 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-sm text-foreground">{k.name}</h3>
+                    <h3 className="font-semibold text-base text-foreground">{k.name}</h3>
                     <p className="text-xs text-muted-foreground">{k.speciality}</p>
-                    <p className="text-[11px] text-muted-foreground">{k.city} • {k.phone}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{k.city} · {k.phone}</p>
                   </div>
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {k.activeJobs} Jobs
+                  <Badge variant="secondary">
+                    {k.activeJobs} Active Jobs
                   </Badge>
                 </div>
 
-                <div className="p-2.5 bg-muted/40 rounded border space-y-1 font-mono text-xs">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border space-y-1 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Gold Held Balance:</span>
-                    <span className="font-bold text-amber-700 dark:text-amber-400">{formatGrams(k.goldHeldMg)}g</span>
+                    <span className="text-muted-foreground">Gold Held:</span>
+                    <span className="font-bold text-primary">{formatGrams(k.goldHeldMg)}g</span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground text-right">{formatTMR(k.goldHeldMg)}</div>
-                  <div className="flex justify-between pt-1 border-t">
-                    <span className="text-muted-foreground font-sans">Silver Held:</span>
-                    <span>{formatGrams(k.silverHeldMg)}g</span>
+                  <div className="text-[11px] text-muted-foreground text-right">{formatTMR(k.goldHeldMg)}</div>
+                  <div className="flex justify-between pt-1 border-t border-border">
+                    <span className="text-muted-foreground">Silver Held:</span>
+                    <span className="font-semibold">{formatGrams(k.silverHeldMg)}g</span>
                   </div>
                 </div>
 
@@ -724,7 +696,7 @@ export const InventoryPage: React.FC = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => toast.info(`Issue metal to ${k.name}`)}
-                    className="flex-1 text-xs"
+                    className="flex-1"
                   >
                     Issue Metal
                   </Button>
@@ -732,68 +704,63 @@ export const InventoryPage: React.FC = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => toast.info(`Receive metal from ${k.name}`)}
-                    className="flex-1 text-xs"
+                    className="flex-1"
                   >
                     Receive Metal
                   </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </TabsContent>
 
-        {/* TAB 6: Stock-take Scan */}
-        <TabsContent value="stocktake" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="p-4 bg-card rounded-lg border shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b pb-2">
-              <div className="space-y-0.5">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">
-                  Physical Stock-take & Barcode Audit Session
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Scan jewellery tag barcodes to compare physical stock with system records.
-                </p>
+        {/* TAB 6: STOCK-TAKE AUDIT */}
+        <TabsContent value="stocktake" className="pt-4 space-y-4">
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h3 className="font-semibold text-base text-foreground">Physical Stock-Take & Barcode Audit</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Scan tags to audit showroom inventory against database records.</p>
               </div>
-
-              <Badge className="bg-emerald-600 text-white font-mono">
-                {stocktakeScanned.length} Scanned
+              <Badge variant="success">
+                {stocktakeScanned.length} Items Verified
               </Badge>
             </div>
 
-            <form onSubmit={handleScanBarcode} className="flex gap-2">
+            <form onSubmit={handleScanBarcode} className="flex gap-3">
               <Input
                 type="text"
                 placeholder="Scan barcode or enter SKU (e.g. 890122003, 890122004)..."
                 value={scanInput}
                 onChange={(e) => setScanInput(e.target.value)}
-                className="h-9 text-xs font-mono"
+                className="h-11"
                 autoFocus
               />
-              <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs">
-                Scan Item
+              <Button type="submit" size="lg" className="px-6 font-medium">
+                Verify Tag
               </Button>
             </form>
 
-            <div className="border rounded-md divide-y text-xs">
+            <div className="rounded-lg border border-border divide-y divide-border text-sm">
               {inventoryItems.map((item) => {
                 const isScanned = stocktakeScanned.includes(item.barcode) || stocktakeScanned.includes(item.tagSku)
                 return (
-                  <div key={item.id} className="p-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div key={item.id} className="p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                       {isScanned ? (
-                        <CheckCircle className="h-4 w-4 text-emerald-600" />
+                        <CheckCircle className="size-5 text-emerald-600" />
                       ) : (
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        <AlertTriangle className="size-5 text-amber-500" />
                       )}
                       <div>
-                        <span className="font-bold">{item.name}</span>
-                        <span className="text-[11px] text-muted-foreground font-mono ml-2">({item.barcode})</span>
+                        <span className="font-semibold text-foreground">{item.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({item.barcode})</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono">{formatGrams(item.netWeightMg)}g</span>
-                      <Badge variant="outline" className={isScanned ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-red-50 text-red-700 border-red-300'}>
+                    <div className="flex items-center gap-4">
+                      <span className="font-semibold text-foreground">{formatGrams(item.netWeightMg)}g</span>
+                      <Badge variant={isScanned ? 'success' : 'destructive'}>
                         {isScanned ? 'Verified Present' : 'Unscanned / Missing'}
                       </Badge>
                     </div>
@@ -801,39 +768,39 @@ export const InventoryPage: React.FC = () => {
                 )
               })}
             </div>
-          </div>
+          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* MODAL 1: New Jewellery Item Sheet */}
+      {/* MODAL 1: New Product Sheet */}
       <Sheet open={newItemOpen} onOpenChange={setNewItemOpen}>
         <SheetContent className="w-[450px] sm:max-w-[500px] flex flex-col p-6 overflow-y-auto">
           <SheetHeader className="border-b pb-3">
-            <SheetTitle className="text-base font-bold text-amber-900 dark:text-amber-300">
-              New Finished Jewellery Stock Item
+            <SheetTitle className="text-lg font-bold text-foreground">
+              Add New Product
             </SheetTitle>
-            <SheetDescription className="text-xs">
-              Assign tag SKU, barcode, gross & net weights, making charges and display tray.
+            <SheetDescription className="text-xs text-muted-foreground">
+              Add necessary product information, weights, image, and showroom tag.
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleCreateItem} className="space-y-3.5 py-4 text-xs">
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold">Item Title *</Label>
+          <form onSubmit={handleCreateItem} className="space-y-4 py-4 text-sm">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Product Title *</Label>
               <Input
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
                 placeholder="e.g. 22K Kundan Choker Necklace"
-                className="h-8 text-xs"
+                className="h-10"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Category</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Category</Label>
                 <Select value={itemCategory} onValueChange={(v: any) => setItemCategory(v)}>
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -848,14 +815,14 @@ export const InventoryPage: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Purity Karat</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Purity Karat</Label>
                 <Select value={itemKarat.toString()} onValueChange={(v) => setItemKarat(parseInt(v, 10))}>
-                  <SelectTrigger className="h-8 text-xs font-mono">
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="24">24K Pure</SelectItem>
+                    <SelectItem value="24">24K Pure Gold</SelectItem>
                     <SelectItem value="22">22K Standard</SelectItem>
                     <SelectItem value="21">21K Arabian</SelectItem>
                     <SelectItem value="18">18K Diamond</SelectItem>
@@ -864,8 +831,8 @@ export const InventoryPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold">Gross Weight (WeightInput)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Gross Weight</Label>
               <WeightInput
                 value={itemGrossMg}
                 onChange={setItemGrossMg}
@@ -873,8 +840,8 @@ export const InventoryPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Stone / Bead Weight</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Stone Weight</Label>
                 <WeightInput
                   value={itemStoneMg}
                   onChange={setItemStoneMg}
@@ -882,49 +849,49 @@ export const InventoryPage: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Stone Cost (PKR)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Stone Cost (PKR)</Label>
                 <MoneyInput
                   value={itemStoneCost}
                   onChange={setItemStoneCost}
-                  className="h-8 text-xs font-mono"
+                  className="h-10"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Making Charges (PKR)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Making Charges (PKR)</Label>
                 <MoneyInput
                   value={itemMakingCharges}
                   onChange={setItemMakingCharges}
-                  className="h-8 text-xs font-mono"
+                  className="h-10"
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Location / Tray</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Showcase Tray</Label>
                 <Input
                   value={itemTray}
                   onChange={(e) => setItemTray(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-10"
                 />
               </div>
             </div>
 
             {/* Product Image URL with Presets */}
-            <div className="space-y-1.5 pt-1">
+            <div className="space-y-2 pt-1">
               <Label className="text-xs font-semibold flex items-center justify-between">
                 <span>Product Image URL</span>
-                <span className="text-[10px] text-muted-foreground font-mono">Quick Preset or Web URL</span>
+                <span className="text-[11px] text-muted-foreground">Quick Presets:</span>
               </Label>
               <Input
                 value={itemImage}
                 onChange={(e) => setItemImage(e.target.value)}
                 placeholder="https://images.unsplash.com/..."
-                className="h-8 text-xs font-mono"
+                className="h-10"
               />
-              <div className="flex flex-wrap gap-1 pt-1">
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {[
                   { label: 'Ring', url: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=80' },
                   { label: 'Bangle', url: 'https://images.unsplash.com/photo-1611591475812-70b028448f21?auto=format&fit=crop&w=600&q=80' },
@@ -932,38 +899,37 @@ export const InventoryPage: React.FC = () => {
                   { label: 'Chain', url: 'https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?auto=format&fit=crop&w=600&q=80' },
                   { label: 'Earring', url: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80' },
                   { label: 'Gold Bar', url: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=600&q=80' },
-                  { label: 'Bridal Set', url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80' },
                 ].map((preset) => (
                   <button
                     key={preset.label}
                     type="button"
                     onClick={() => setItemImage(preset.url)}
-                    className="px-2 py-0.5 rounded text-[10px] border border-border bg-muted/50 hover:bg-muted font-medium transition-colors cursor-pointer"
+                    className="px-2 py-1 rounded text-xs border border-border bg-secondary hover:bg-secondary/80 font-medium transition-colors"
                   >
                     + {preset.label}
                   </button>
                 ))}
               </div>
               {itemImage && (
-                <div className="h-20 w-full rounded border overflow-hidden mt-1.5 bg-muted/20">
+                <div className="h-24 w-full rounded-lg border border-border overflow-hidden mt-2 bg-muted/20">
                   <img src={itemImage} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
 
-            <div className="p-3 rounded-lg bg-muted/40 border border-border flex justify-between items-center font-mono">
-              <span className="text-xs font-sans font-semibold text-foreground">Calculated Net Gold:</span>
+            <div className="p-3.5 rounded-lg bg-muted/50 border border-border flex justify-between items-center">
+              <span className="text-xs font-semibold text-muted-foreground">Calculated Net Gold:</span>
               <span className="text-base font-bold text-foreground">
                 {formatGrams(Math.max(0, itemGrossMg - itemStoneMg), 3)} g
               </span>
             </div>
 
             <SheetFooter className="pt-3 border-t">
-              <Button type="button" variant="outline" size="sm" onClick={() => setNewItemOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setNewItemOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-foreground text-background hover:bg-foreground/90 font-semibold cursor-pointer">
-                Save & Generate Barcode
+              <Button type="submit" className="font-semibold">
+                Save Product
               </Button>
             </SheetFooter>
           </form>
@@ -974,17 +940,17 @@ export const InventoryPage: React.FC = () => {
       <Dialog open={rawStockOpen} onOpenChange={setRawStockOpen}>
         <DialogContent className="max-w-md p-6">
           <DialogHeader className="border-b pb-3">
-            <DialogTitle className="text-base font-bold text-foreground">
-              Purchase & Add Raw Bullion Stock
+            <DialogTitle className="text-lg font-bold text-foreground">
+              Add Raw Bullion Stock
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3.5 py-3 text-xs">
+          <div className="space-y-4 py-3 text-sm">
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Metal</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Metal</Label>
                 <Select value={rawMetal} onValueChange={(v: any) => setRawMetal(v)}>
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -994,22 +960,22 @@ export const InventoryPage: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Purity Karat</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Purity Karat</Label>
                 <Select value={rawKarat.toString()} onValueChange={(v) => setRawKarat(parseInt(v, 10))}>
-                  <SelectTrigger className="h-8 text-xs font-mono">
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="24">24K (Pure Bullion)</SelectItem>
-                    <SelectItem value="22">22K</SelectItem>
-                    <SelectItem value="21">21K</SelectItem>
+                    <SelectItem value="24">24K Pure Bullion</SelectItem>
+                    <SelectItem value="22">22K Standard</SelectItem>
+                    <SelectItem value="21">21K Arabian</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Weight</Label>
               <WeightInput
                 value={rawWeightMg}
@@ -1017,21 +983,21 @@ export const InventoryPage: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Purchase Cost Rate / Tola (PKR)</Label>
               <MoneyInput
                 value={rawCostPerTola}
                 onChange={setRawCostPerTola}
-                className="h-9 font-bold"
+                className="h-10"
               />
             </div>
           </div>
 
-          <DialogFooter className="pt-2 border-t">
-            <Button variant="outline" size="sm" onClick={() => setRawStockOpen(false)}>
+          <DialogFooter className="pt-3 border-t">
+            <Button variant="outline" onClick={() => setRawStockOpen(false)}>
               Cancel
             </Button>
-            <Button size="sm" onClick={handleAddRawStock} className="bg-foreground text-background hover:bg-foreground/90 font-semibold cursor-pointer">
+            <Button onClick={handleAddRawStock} className="font-semibold">
               Add to Stock
             </Button>
           </DialogFooter>
@@ -1043,22 +1009,21 @@ export const InventoryPage: React.FC = () => {
         <DialogContent className="max-w-sm p-6 text-center">
           <DialogHeader className="border-b pb-3">
             <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
-              <QrCode className="h-5 w-5 text-foreground" />
-              Jewellery Tag Barcode Preview
+              <QrCode className="size-5 text-foreground" />
+              Jewellery Tag Barcode
             </DialogTitle>
           </DialogHeader>
 
           {selectedItemForLabel && (
             <div className="py-4 flex flex-col items-center space-y-2">
-              <div className="w-56 p-3 rounded-md border bg-white text-zinc-950 font-mono shadow-sm text-xs leading-tight">
-                <div className="font-bold font-serif text-[11px]">GOLD KING JEWELLERS</div>
-                <div className="text-[10px] text-zinc-500 font-sans truncate">{selectedItemForLabel.name}</div>
-                {/* Barcode representation */}
-                <div className="my-2 h-10 bg-zinc-900 flex items-center justify-center text-white tracking-[6px] text-xs font-mono font-bold">
-                  ||||||||||||||||||||||||||
+              <div className="w-56 p-4 rounded-lg border border-border bg-card text-foreground shadow-sm text-xs leading-tight">
+                <div className="font-bold text-xs uppercase tracking-wide">Zorvex Jewellers</div>
+                <div className="text-[11px] text-muted-foreground truncate mt-0.5">{selectedItemForLabel.name}</div>
+                <div className="my-3 h-10 bg-muted/80 rounded flex items-center justify-center text-foreground tracking-[5px] text-xs font-mono font-bold border border-border">
+                  ||||||||||||||||||||||
                 </div>
-                <div className="text-[10px] font-bold">{selectedItemForLabel.barcode}</div>
-                <div className="flex justify-between pt-1 border-t border-zinc-200 text-[10px] font-bold">
+                <div className="text-xs font-mono font-bold">{selectedItemForLabel.barcode}</div>
+                <div className="flex justify-between pt-2 border-t border-border text-[11px] font-semibold mt-2">
                   <span>{selectedItemForLabel.karat}K</span>
                   <span>{formatGrams(selectedItemForLabel.grossWeightMg)}g</span>
                   <span>Rs {selectedItemForLabel.makingChargesPkr}</span>
@@ -1072,16 +1037,16 @@ export const InventoryPage: React.FC = () => {
               Close
             </Button>
             <Button size="sm" onClick={() => {
-              toast.success("Sending to Zebra barcode label printer...")
+              toast.success("Printing tag on Zebra thermal printer...")
               setSelectedItemForLabel(null)
-            }} className="bg-foreground text-background hover:bg-foreground/90 font-semibold gap-1.5 cursor-pointer">
-              <Printer className="h-4 w-4" /> Print Tag
+            }} className="font-semibold gap-1.5">
+              <Printer className="size-4" /> Print Tag
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* MODAL 4: High-Res Jewellery Image Zoom Preview */}
+      {/* MODAL 4: High-Res Image Preview Zoom */}
       <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
         <DialogContent className="max-w-xl p-0 overflow-hidden bg-background border border-border">
           {previewImage && (
@@ -1113,3 +1078,4 @@ export const InventoryPage: React.FC = () => {
     </div>
   )
 }
+export default InventoryPage

@@ -214,6 +214,7 @@ export interface MandiRate {
   goldUsdOz: number
   usdPkr: number
   pkrPerTola24k: number
+  pkrPerTola22k?: number
   pkrPerGram24k: number
   pkrPerTolaSilver: number
   lastUpdated: string
@@ -274,4 +275,46 @@ export interface AppSettings {
   autoRefreshMandi: boolean
   mandiRefreshIntervalSec: number
   kachaMode: boolean
+}
+
+export interface DigitalScaleState {
+  weightMg: number
+  isStable: boolean
+  isTare: boolean
+  isConnected: boolean
+  scaleUnit: 'grams' | 'tola'
+  port: string
+  modelName: string
+}
+
+export interface CustomerDisplayState {
+  shopName: string
+  mandiRate24k: number
+  mandiRate22k: number
+  customerName: string
+  activeItem: {
+    description: string
+    carat: number
+    grossWeightMg: number
+    deductionsMg: number
+    netWeightMg: number
+    chargesPkr: number
+    totalPkr: number
+  } | null
+  items: Array<{
+    id: string
+    description: string
+    carat: number
+    grossWeightMg: number
+    netWeightMg: number
+    totalPkr: number
+  }>
+  totalGrossMg: number
+  totalNetMg: number
+  totalAmountPkr: number
+  wasoolPkr: number
+  balancePkr: number
+  scaleWeightMg: number
+  scaleIsStable: boolean
+  lastUpdated: string
 }

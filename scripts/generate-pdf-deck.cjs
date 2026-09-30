@@ -6,24 +6,35 @@ const screenshotsDir = path.resolve(__dirname, '../screenshots');
 
 // Curated slide presentation order with rich client-facing context
 const slidesData = [
-  // MODULE 1: EXECUTIVE INTELLIGENCE
+  // MODULE 1: RETAIL POINT OF SALE
   {
-    module: "MODULE 01 • BUSINESS INTELLIGENCE",
+    module: "MODULE 01 • RETAIL POINT OF SALE",
+    title: "Minimal Full-Width POS (98vw Layout & Digital Scale)",
+    urdu: "",
+    badge: "Hardware Connected",
+    feature: "Direct Scale Telemetry, Purity Selector, Deductions & Compact Actions",
+    description: "Streamlined point-of-sale checkout taking 98vw full screen width. Integrates directly with the digital scale pan, calculates gold metal values, non-gold deductions, making charges, and provides compact action buttons.",
+    image: "01-pos-counter-live-scale.png"
+  },
+  {
+    module: "MODULE 01 • RETAIL POINT OF SALE",
+    title: "Manager Security Authentication PIN Gate",
+    urdu: "",
+    badge: "Access Control",
+    feature: "Security PIN Protecting Customer Ledgers, Vault Inventory & Reports",
+    description: "Clicking the Dashboard tab triggers a manager authorization PIN prompt. Unlocking reveals the full back-office navigation sidebar.",
+    image: "04b-back-office-auth-modal.png"
+  },
+
+  // MODULE 2: EXECUTIVE INTELLIGENCE
+  {
+    module: "MODULE 02 • BUSINESS INTELLIGENCE",
     title: "Executive Business Dashboard",
     urdu: "ایگزیکٹو ڈیش بورڈ اور اہم اعداد و شمار",
     badge: "Real-time Metrics",
     feature: "Live Sales, Gold Bought/Sold Volumes, Vault Cash Balance & Workshop Job Tracking",
     description: "Consolidated high-level business command center providing immediate visibility into daily revenue, physical gold turnover (in tolas & grams), pending workshop jobs, and uncollected customer debt balances.",
     image: "05-dashboard-overview.png"
-  },
-  {
-    module: "MODULE 01 • BUSINESS INTELLIGENCE",
-    title: "Metric Analytics: Fine Gold Grams Toggle",
-    urdu: "خالص سونا میٹرک ویو",
-    badge: "Unit Flexibility",
-    feature: "Instant Switch between PKR Monetary Turnover and Physical Pure Gold Grams",
-    description: "Sarafa market businesses track liquidity in both currency and physical gold. One-click toggle shifts all sales volume charts and holding distributions into pure 24K grams.",
-    image: "06-dashboard-grams-mode.png"
   },
 
   // MODULE 2: POINT OF SALE & BILLING
@@ -254,15 +265,6 @@ const slidesData = [
     feature: "Automated Profit & Loss, Net Worth Balance Sheet & Bullion Inventory Valuation",
     description: "Comprehensive financial intelligence dashboard. Automatically marks inventory value to market based on today's Mandi rate, providing real-time net worth calculation.",
     image: "25-reports-financial.png"
-  },
-  {
-    module: "MODULE 08 • FINANCE & MARKETS",
-    title: "Sarafa Mandi Live Rate Board",
-    urdu: "صرافہ منڈی کے لائیو ریٹس",
-    badge: "Market Benchmark",
-    feature: "Live Benchmark Rates for 24K, 22K, 21K, 18K & Silver with Buy/Sell Margins",
-    description: "Real-time rates screen mirroring official Sarafa Association boards. Automatically computes per-tola, per-10-gram, and per-gram buy/sell spreads.",
-    image: "26-rates-mandi-board.png"
   },
   {
     module: "MODULE 08 • FINANCE & MARKETS",

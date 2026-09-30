@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Shuffle, Sparkles, Scissors, ArrowLeft, RotateCcw, Save, Printer } from 'lucide-react'
+import { PageTitle } from '@/components/shared/PageTitle'
 import { toast } from 'sonner'
 
 export const MixingPage: React.FC = () => {
@@ -103,49 +104,46 @@ export const MixingPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      {/* Header */}
-      <div className="h-12 border-b bg-card px-4 flex items-center justify-between select-none shrink-0">
-        <div className="flex items-center gap-3">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setCurrentPage('billing')}
-            className="h-8 gap-1.5 text-xs text-muted-foreground"
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* PageTitle Header */}
+          <PageTitle
+            title="Gold Mixing & Carat Changer"
+            description="Calculate PAT, Passa, Mail alloy ratios and convert karat standards"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Main Form
-          </Button>
+            <div className="flex items-center gap-3">
+              <Tabs
+                value={activeTab}
+                onValueChange={(v) => setActiveMixingSubtype(v as any)}
+                className="w-auto"
+              >
+                <TabsList className="h-9 bg-muted p-1">
+                  <TabsTrigger value="mixing" className="text-xs font-semibold gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Shuffle className="h-3.5 w-3.5" />
+                    Mixing PAT
+                  </TabsTrigger>
+                  <TabsTrigger value="cutting" className="text-xs font-semibold gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Scissors className="h-3.5 w-3.5" />
+                    Cutting Mail
+                  </TabsTrigger>
+                  <TabsTrigger value="carat_changer" className="text-xs font-semibold gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Carat Changer
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-          <h1 className="font-serif font-black text-lg tracking-wider text-amber-900 dark:text-amber-300 uppercase">
-            {activeTab === 'carat_changer' ? 'CARAT CHANGER' : 'GOLD MIXING & ALLOY'}
-          </h1>
-        </div>
-
-        {/* Tab switchers */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveMixingSubtype(v as any)}
-          className="w-auto"
-        >
-          <TabsList className="h-8">
-            <TabsTrigger value="mixing" className="text-xs gap-1.5">
-              <Shuffle className="h-3.5 w-3.5" />
-              Mixing PAT
-            </TabsTrigger>
-            <TabsTrigger value="cutting" className="text-xs gap-1.5">
-              <Scissors className="h-3.5 w-3.5" />
-              Cutting Mail
-            </TabsTrigger>
-            <TabsTrigger value="carat_changer" className="text-xs gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" />
-              Carat Changer
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCurrentPage('billing')}
+                className="h-9 gap-1.5 text-xs font-semibold"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Main Form
+              </Button>
+            </div>
+          </PageTitle>
         {activeTab !== 'carat_changer' ? (
           /* MIXING PAT & CUTTING MAIL VIEW */
           <div className="space-y-4">
@@ -447,53 +445,50 @@ export const MixingPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Footer */}
-      <div className="h-12 border-t bg-card px-4 flex items-center justify-between select-none shrink-0 shadow-xs">
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={handleSaveRecord}
-            className="h-8 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5"
-          >
-            <Save className="h-4 w-4" />
-            SAVE CALCULATION (F8)
-          </Button>
+        {/* Action Card */}
+        <div className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              size="default"
+              onClick={handleSaveRecord}
+              className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs gap-1.5 px-4"
+            >
+              <Save className="h-4 w-4" />
+              SAVE CALCULATION (F8)
+            </Button>
 
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleZero}
-            className="h-8 text-xs text-red-600 hover:bg-red-50 gap-1.5"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            ZERO (F4)
-          </Button>
-        </div>
+            <Button
+              size="default"
+              variant="ghost"
+              onClick={handleZero}
+              className="h-9 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 px-3"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              ZERO (F4)
+            </Button>
+          </div>
 
-        {/* Right Units */}
-        <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="text-muted-foreground">Unit:</span>
-          <div className="flex items-center gap-1 bg-muted p-0.5 rounded border">
+          {/* Right Units */}
+          <div className="flex items-center gap-1 bg-muted p-1 rounded-lg border border-border text-xs font-mono">
             <button
               type="button"
               onClick={() => setUnitMode('auto')}
-              className={`px-2 py-0.5 rounded font-bold text-xs ${unitMode === 'auto' ? 'bg-amber-500 text-white' : 'text-muted-foreground'}`}
+              className={`px-2.5 py-1 rounded font-bold text-xs transition-colors ${unitMode === 'auto' ? 'bg-primary text-primary-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Auto (F7)
             </button>
             <button
               type="button"
               onClick={() => setUnitMode('grams')}
-              className={`px-2 py-0.5 rounded font-bold text-xs ${unitMode === 'grams' ? 'bg-amber-500 text-white' : 'text-muted-foreground'}`}
+              className={`px-2.5 py-1 rounded font-bold text-xs transition-colors ${unitMode === 'grams' ? 'bg-primary text-primary-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Grams (G)
             </button>
             <button
               type="button"
               onClick={() => setUnitMode('tola')}
-              className={`px-2 py-0.5 rounded font-bold text-xs ${unitMode === 'tola' ? 'bg-amber-500 text-white' : 'text-muted-foreground'}`}
+              className={`px-2.5 py-1 rounded font-bold text-xs transition-colors ${unitMode === 'tola' ? 'bg-primary text-primary-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Tolas (W)
             </button>
@@ -501,5 +496,6 @@ export const MixingPage: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   )
 }

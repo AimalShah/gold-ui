@@ -4,8 +4,8 @@ import { Customer, LedgerEntry } from '@/lib/types'
 import { formatGrams, formatTMR, formatMoney } from '@/lib/gold-math'
 import { WeightInput } from '@/components/shared/WeightInput'
 import { MoneyInput } from '@/components/shared/MoneyInput'
-import { LedgerBadge } from '@/components/shared/LedgerBadge'
-import { HotkeyHint } from '@/components/shared/HotkeyHint'
+import { PageTitle } from '@/components/shared/PageTitle'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -40,15 +40,12 @@ import {
   UserPlus,
   ArrowUpRight,
   ArrowDownLeft,
-  Receipt,
-  FileText,
   Phone,
   MapPin,
-  Calendar,
-  CreditCard,
-  Printer,
   Edit,
-  Hammer,
+  Download,
+  CreditCard,
+  Scale,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -62,7 +59,6 @@ export const CustomersPage: React.FC = () => {
     bills,
     orders,
     tehleelRecords,
-    setCurrentPage,
     selectedCustomerIdForDetail,
     setSelectedCustomerIdForDetail,
   } = useApp()
@@ -71,7 +67,7 @@ export const CustomersPage: React.FC = () => {
   const [filterType, setFilterType] = useState('all')
 
   // Selected customer for View / Detail
-  const selectedCustomer = customers.find((c) => c.id === selectedCustomerIdForDetail) || null
+  const selectedCustomer = customers.find((c) => c.id === selectedCustomerIdForDetail) || customers[0] || null
 
   // Customer Form Sheet
   const [customerSheetOpen, setCustomerSheetOpen] = useState(false)
@@ -113,6 +109,11 @@ export const CustomersPage: React.FC = () => {
     if (filterType === 'inactive') return !c.active
     return true
   })
+
+  // Summary Metrics
+  const totalReceivableCashPkr = customers.filter(c => c.cashBalancePkr > 0).reduce((sum, c) => sum + c.cashBalancePkr, 0)
+  const totalReceivableGoldMg = customers.filter(c => c.goldBalanceMg > 0).reduce((sum, c) => sum + c.goldBalanceMg, 0)
+  const totalAdvanceCashPkr = Math.abs(customers.filter(c => c.cashBalancePkr < 0).reduce((sum, c) => sum + c.cashBalancePkr, 0))
 
   const openNewCustomer = () => {
     setEditingCustomer(null)
@@ -216,8 +217,6 @@ export const CustomersPage: React.FC = () => {
         toast.error("Please enter a valid cash amount.")
         return
       }
-      // Customer Credit (+) = customer gives cash to shop, reducing dues (cashIn)
-      // Customer Debit (-) = customer withdraws cash, increasing dues (cashOut)
       cashChange = isCredit ? -txAmountPkr : txAmountPkr
     } else {
       if (txWeightMg <= 0) {
@@ -250,7 +249,7 @@ export const CustomersPage: React.FC = () => {
       runningCashPkr: updatedCash,
     })
 
-    toast.success(`Recorded ${isCredit ? 'Credit' : 'Debit'} of ${txMedium === 'cash' ? formatMoney(txAmountPkr) : `${formatGrams(txWeightMg)}g`}!`)
+    toast.success(`Recorded ${isCredit ? 'Credit' : 'Debit'} voucher successfully!`)
     setTxDialogOpen(false)
   }
 
@@ -261,63 +260,114 @@ export const CustomersPage: React.FC = () => {
   const customerTehleels = tehleelRecords.filter((t) => t.customerId === selectedCustomer?.id)
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      {/* Top Action Toolbar */}
-      <div className="h-12 border-b px-4 flex items-center justify-between bg-card/60 select-none shrink-0">
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-foreground" />
-          <h1 className="font-bold text-sm text-foreground">Customers & Dual Ledger Register</h1>
-          <Badge variant="secondary" className="text-xs font-mono ml-2">
-            {customers.length} Accounts
-          </Badge>
-        </div>
-
-        <div className="flex items-center gap-2">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-6 space-y-6">
+      {/* 1. Page Header */}
+      <PageTitle
+        description="Customer account management, dual-currency (Gold & Cash) balance ledgers, and credit limits."
+        action={
           <Button
-            size="sm"
+            size="lg"
             onClick={openNewCustomer}
-            className="h-8 bg-foreground hover:bg-foreground/90 text-background font-medium text-xs gap-1.5 shadow-xs"
+            className="gap-2 font-medium"
           >
-            <UserPlus className="h-4 w-4" />
-            New Customer
+            <UserPlus className="size-4" /> Add Customer
           </Button>
-        </div>
+        }
+      >
+        Customers & Dual Ledger
+      </PageTitle>
+
+      {/* 2. Top Summary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Total Customers</span>
+            <Users className="size-5 text-muted-foreground" />
+          </div>
+          <p className="text-2xl font-bold text-foreground mt-2">{customers.length} Accounts</p>
+          <span className="text-xs text-muted-foreground">Registered Sarafa Retailers</span>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Total Cash Dues</span>
+            <CreditCard className="size-5 text-amber-500" />
+          </div>
+          <p className="text-2xl font-bold text-destructive mt-2">{formatMoney(totalReceivableCashPkr)}</p>
+          <span className="text-xs text-muted-foreground">Owed by 18 Accounts</span>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Total Gold Owed</span>
+            <Scale className="size-5 text-primary" />
+          </div>
+          <p className="text-2xl font-bold text-primary mt-2">{formatGrams(totalReceivableGoldMg)}g</p>
+          <span className="text-xs text-muted-foreground font-mono">{formatTMR(totalReceivableGoldMg)}</span>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Advance Deposits</span>
+            <ArrowDownLeft className="size-5 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-emerald-600 mt-2">{formatMoney(totalAdvanceCashPkr)}</p>
+          <span className="text-xs text-muted-foreground">Client Cash Held</span>
+        </Card>
       </div>
 
-      {/* Split view: Left List (35%), Right Customer View / Ledger (65%) */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Column: Customers List */}
-        <div className="w-[360px] lg:w-[420px] border-r flex flex-col h-full bg-card/20 shrink-0">
-          {/* Search & Filter Toolbar */}
-          <div className="p-3 border-b space-y-2 bg-card/40">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search name, phone, city, ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-8 text-xs font-sans"
-              />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="h-7 text-xs flex-1">
-                  <SelectValue placeholder="Filter balance" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Customers</SelectItem>
-                  <SelectItem value="owes_gold">Owes Gold Balance</SelectItem>
-                  <SelectItem value="owes_cash">Owes Cash Balance</SelectItem>
-                  <SelectItem value="advance">Advance (Credit)</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {/* 3. Action & Filter Bar */}
+      <Card className="p-4">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="relative w-full md:basis-[50%]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search name, phone, city, account ID..."
+              className="h-11 pl-10"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          {/* Customer rows */}
-          <div className="flex-1 overflow-y-auto divide-y divide-border/60">
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="h-11 md:basis-[30%]">
+              <SelectValue placeholder="All Customers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Customer Accounts</SelectItem>
+              <SelectItem value="owes_gold">Owes Gold Balance</SelectItem>
+              <SelectItem value="owes_cash">Owes Cash Balance</SelectItem>
+              <SelectItem value="advance">Advance (Credit)</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-11 w-full md:basis-[20%]"
+            onClick={() => {
+              setSearch('')
+              setFilterType('all')
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+      </Card>
+
+      {/* 4. Split Workspace: Customer List & Detail View */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+        {/* Left: Customer Accounts List */}
+        <div className="lg:col-span-4 rounded-lg border border-border bg-card overflow-hidden flex flex-col h-full shadow-xs">
+          <div className="p-3.5 border-b border-border bg-muted/40 flex items-center justify-between">
+            <span className="font-semibold text-xs text-foreground uppercase tracking-wide">
+              Customer Directory ({filteredCustomers.length})
+            </span>
+          </div>
+
+          <div className="divide-y divide-border overflow-y-auto max-h-[600px]">
             {filteredCustomers.map((c) => {
               const isSelected = selectedCustomer?.id === c.id
               const owesGold = c.goldBalanceMg > 0
@@ -327,37 +377,37 @@ export const CustomersPage: React.FC = () => {
                 <div
                   key={c.id}
                   onClick={() => setSelectedCustomerIdForDetail(c.id)}
-                  className={`p-3 cursor-pointer transition-colors text-xs space-y-1.5 ${
+                  className={`p-4 cursor-pointer transition-colors text-xs space-y-1.5 ${
                     isSelected
-                      ? 'bg-amber-500/15 border-l-4 border-amber-600 text-foreground'
-                      : 'hover:bg-muted/60 text-muted-foreground'
+                      ? 'bg-accent/60 border-l-4 border-primary text-foreground'
+                      : 'hover:bg-muted/40 text-muted-foreground'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-foreground truncate max-w-[200px]">
+                    <span className="font-semibold text-sm text-foreground truncate max-w-[180px]">
                       {c.name}
                     </span>
-                    <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-muted text-foreground">
-                      {c.id}
-                    </span>
+                    <Badge variant="outline" className="text-[10px]">
+                      {c.group}
+                    </Badge>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{c.phone}</span>
                     <span>{c.city}</span>
                   </div>
 
-                  {/* Dual balance chips */}
-                  <div className="flex items-center justify-between pt-1 border-t border-border/40 font-mono text-[11px]">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-sans uppercase text-muted-foreground">Gold:</span>
-                      <span className={owesGold ? "text-red-600 font-bold" : c.goldBalanceMg < 0 ? "text-emerald-600 font-bold" : "text-muted-foreground"}>
+                  {/* Dual Balances */}
+                  <div className="flex items-center justify-between pt-1.5 border-t border-border/60 text-xs">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Gold:</span>
+                      <span className={owesGold ? "text-destructive font-semibold" : c.goldBalanceMg < 0 ? "text-emerald-600 font-semibold" : "text-muted-foreground"}>
                         {formatGrams(c.goldBalanceMg)}g
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-sans uppercase text-muted-foreground">Cash:</span>
-                      <span className={owesCash ? "text-red-600 font-bold" : c.cashBalancePkr < 0 ? "text-emerald-600 font-bold" : "text-muted-foreground"}>
+                    <div className="text-right">
+                      <span className="text-[11px] text-muted-foreground block">Cash:</span>
+                      <span className={owesCash ? "text-destructive font-semibold" : c.cashBalancePkr < 0 ? "text-emerald-600 font-semibold" : "text-muted-foreground"}>
                         {formatMoney(c.cashBalancePkr)}
                       </span>
                     </div>
@@ -368,341 +418,263 @@ export const CustomersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Customer View / Detail (I+V) */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
+        {/* Right: Detailed Ledger View */}
+        <div className="lg:col-span-8 rounded-lg border border-border bg-card p-6 flex flex-col justify-between shadow-xs">
           {selectedCustomer ? (
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
-              {/* Customer Header Summary Card */}
-              <div className="p-4 border-b bg-card/60 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-foreground">{selectedCustomer.name}</h2>
-                      <Badge variant="outline" className="font-mono text-xs">
-                        {selectedCustomer.id}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs font-medium">
-                        {selectedCustomer.group}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {selectedCustomer.phone}</span>
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {selectedCustomer.address}, {selectedCustomer.city}</span>
-                      {selectedCustomer.cnic && <span>CNIC: {selectedCustomer.cnic}</span>}
-                    </div>
+            <div className="space-y-6">
+              {/* Header Profile Info */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-foreground">{selectedCustomer.name}</h2>
+                    <Badge variant="secondary">{selectedCustomer.group}</Badge>
+                    <Badge variant="outline" className="font-mono text-xs">{selectedCustomer.id}</Badge>
                   </div>
-
-                  {/* Top Action Buttons for this customer */}
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      size="sm"
-                      onClick={() => openCreditDebit('credit')}
-                      className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1 font-semibold"
-                      title="Customer Payment Received (I+C)"
-                    >
-                      <ArrowDownLeft className="h-3.5 w-3.5" />
-                      Credit (+)
-                      <HotkeyHint hotkey="I+C" className="h-3.5 text-[8px] bg-emerald-800 text-white border-emerald-500" />
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      onClick={() => openCreditDebit('debit')}
-                      className="h-8 text-xs bg-red-600 hover:bg-red-700 text-white gap-1 font-semibold"
-                      title="Customer Gold / Cash Given (I+D)"
-                    >
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                      Debit (−)
-                      <HotkeyHint hotkey="I+D" className="h-3.5 text-[8px] bg-red-800 text-white border-red-500" />
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditCustomer(selectedCustomer)}
-                      className="h-8 text-xs gap-1 font-semibold"
-                    >
-                      <Edit className="h-3.5 w-3.5" />
-                      Edit
-                    </Button>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mt-1.5">
+                    <span className="flex items-center gap-1.5"><Phone className="size-3.5" /> {selectedCustomer.phone}</span>
+                    <span className="flex items-center gap-1.5"><MapPin className="size-3.5" /> {selectedCustomer.address}, {selectedCustomer.city}</span>
                   </div>
                 </div>
 
-                {/* Balances Banner */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t">
-                  <div className="p-2.5 rounded-md bg-muted/40 border">
-                    <div className="text-[10px] uppercase font-bold text-muted-foreground">Gold Balance</div>
-                    <div className={`text-base font-mono font-bold ${selectedCustomer.goldBalanceMg > 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-                      {formatGrams(selectedCustomer.goldBalanceMg, 3)} g
-                    </div>
-                    <div className="text-[10px] font-mono text-muted-foreground">{formatTMR(selectedCustomer.goldBalanceMg)}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded-md bg-muted/40 border">
-                    <div className="text-[10px] uppercase font-bold text-muted-foreground">Cash Balance</div>
-                    <div className={`text-base font-mono font-bold ${selectedCustomer.cashBalancePkr > 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-                      {formatMoney(selectedCustomer.cashBalancePkr)}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {selectedCustomer.cashBalancePkr > 0 ? 'Customer Owes Shop' : selectedCustomer.cashBalancePkr < 0 ? 'Advance Cash Held' : 'Account Balanced'}
-                    </div>
-                  </div>
-
-                  <div className="p-2.5 rounded-md bg-muted/40 border">
-                    <div className="text-[10px] uppercase font-bold text-muted-foreground">Credit Limit</div>
-                    <div className="text-base font-mono font-semibold text-foreground">
-                      {formatMoney(selectedCustomer.creditLimitPkr)}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">SMS Alerts: {selectedCustomer.smsAlerts ? 'Active' : 'Off'}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded-md bg-muted/40 border">
-                    <div className="text-[10px] uppercase font-bold text-muted-foreground">Last Transaction</div>
-                    <div className="text-base font-mono font-semibold text-foreground">
-                      {selectedCustomer.lastTransactionDate}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">{customerBills.length} Bills • {customerOrders.length} Orders</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => openCreditDebit('credit')}
+                    className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs"
+                  >
+                    <ArrowDownLeft className="size-4" /> Credit (+)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => openCreditDebit('debit')}
+                    className="gap-1.5 font-medium text-xs"
+                  >
+                    <ArrowUpRight className="size-4" /> Debit (−)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openEditCustomer(selectedCustomer)}
+                    className="gap-1 text-xs"
+                  >
+                    <Edit className="size-3.5" /> Edit
+                  </Button>
                 </div>
               </div>
 
-              {/* Tabs for Customer Details: Ledger, Bills, Orders, Tehleel, Notes */}
-              <div className="flex-1 flex flex-col overflow-hidden p-4">
-                <Tabs defaultValue="ledger" className="flex-1 flex flex-col overflow-hidden">
-                  <TabsList className="h-9 w-fit mb-3">
-                    <TabsTrigger value="ledger" className="text-xs">Ledger (Dual Statement)</TabsTrigger>
-                    <TabsTrigger value="bills" className="text-xs">Bills History ({customerBills.length})</TabsTrigger>
-                    <TabsTrigger value="orders" className="text-xs">Workshop Orders ({customerOrders.length})</TabsTrigger>
-                    <TabsTrigger value="tehleel" className="text-xs">Tehleel Tests ({customerTehleels.length})</TabsTrigger>
-                    <TabsTrigger value="notes" className="text-xs">Customer Notes</TabsTrigger>
-                  </TabsList>
+              {/* Dual Balance Cards Banner */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                  <span className="text-[11px] uppercase font-semibold text-muted-foreground">Gold Balance</span>
+                  <div className={`text-lg font-bold mt-1 ${selectedCustomer.goldBalanceMg > 0 ? 'text-destructive' : 'text-emerald-600'}`}>
+                    {formatGrams(selectedCustomer.goldBalanceMg, 3)} g
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-mono">{formatTMR(selectedCustomer.goldBalanceMg)}</span>
+                </div>
 
-                  {/* Tab 1: Dual Currency Ledger */}
-                  <TabsContent value="ledger" className="flex-1 overflow-y-auto mt-0 border rounded-md">
-                    <table className="w-full text-left text-xs border-collapse font-sans">
-                      <thead className="bg-muted/70 sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
+                <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                  <span className="text-[11px] uppercase font-semibold text-muted-foreground">Cash Balance</span>
+                  <div className={`text-lg font-bold mt-1 ${selectedCustomer.cashBalancePkr > 0 ? 'text-destructive' : 'text-emerald-600'}`}>
+                    {formatMoney(selectedCustomer.cashBalancePkr)}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {selectedCustomer.cashBalancePkr > 0 ? 'Customer Owes Shop' : 'Account Balanced'}
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                  <span className="text-[11px] uppercase font-semibold text-muted-foreground">Credit Limit</span>
+                  <div className="text-lg font-semibold text-foreground mt-1">
+                    {formatMoney(selectedCustomer.creditLimitPkr)}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">Limit Approved</span>
+                </div>
+
+                <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                  <span className="text-[11px] uppercase font-semibold text-muted-foreground">Last Transaction</span>
+                  <div className="text-lg font-semibold text-foreground mt-1">
+                    {selectedCustomer.lastTransactionDate}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">{customerBills.length} Invoices</span>
+                </div>
+              </div>
+
+              {/* Customer History Tabs: Ledger, Bills, Orders */}
+              <Tabs defaultValue="ledger" className="w-full">
+                <TabsList className="bg-muted p-1 rounded-lg">
+                  <TabsTrigger value="ledger" className="text-xs font-medium">Roznamcha / Ledger ({customerLedger.length})</TabsTrigger>
+                  <TabsTrigger value="bills" className="text-xs font-medium">Invoices Archive ({customerBills.length})</TabsTrigger>
+                  <TabsTrigger value="orders" className="text-xs font-medium">Workshop Orders ({customerOrders.length})</TabsTrigger>
+                </TabsList>
+
+                {/* Ledger Tab */}
+                <TabsContent value="ledger" className="pt-4">
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-muted/50 font-semibold text-muted-foreground uppercase border-b border-border">
                         <tr>
-                          <th className="py-3 px-3.5">Date</th>
-                          <th className="py-3 px-3.5">Ref #</th>
-                          <th className="py-3 px-3.5">Description</th>
-                          <th className="py-3 px-3.5 text-right font-medium">Gold In (g)</th>
-                          <th className="py-3 px-3.5 text-right font-medium">Gold Out (g)</th>
-                          <th className="py-3 px-3.5 text-right font-medium">Cash In (PKR)</th>
-                          <th className="py-3 px-3.5 text-right font-medium">Cash Out (PKR)</th>
-                          <th className="py-3 px-3.5 text-right font-bold">Gold Bal (g)</th>
-                          <th className="py-3 px-3.5 text-right font-bold">Cash Bal (Rs)</th>
+                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3">Ref</th>
+                          <th className="px-4 py-3">Narration</th>
+                          <th className="px-4 py-3 text-right">Gold In</th>
+                          <th className="px-4 py-3 text-right">Gold Out</th>
+                          <th className="px-4 py-3 text-right">Cash In</th>
+                          <th className="px-4 py-3 text-right">Cash Out</th>
+                          <th className="px-4 py-3 text-right font-bold">Gold Bal</th>
+                          <th className="px-4 py-3 text-right font-bold">Cash Bal</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border/60 font-mono">
+                      <tbody className="divide-y divide-border">
                         {customerLedger.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="py-8 text-center text-xs text-muted-foreground font-sans">
-                              No ledger entries recorded yet for this customer.
+                            <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                              No ledger entries recorded yet.
                             </td>
                           </tr>
                         ) : (
                           customerLedger.map((row) => (
-                            <tr key={row.id} className="hover:bg-muted/40 transition-colors">
-                              <td className="py-3 px-3.5">{row.date}</td>
-                              <td className="py-3 px-3.5 font-bold text-foreground">{row.ref}</td>
-                              <td className="py-3 px-3.5 font-sans text-foreground max-w-[220px] truncate">{row.description}</td>
-                              <td className="py-3 px-3.5 text-right font-medium">{row.goldInMg ? formatGrams(row.goldInMg) : '—'}</td>
-                              <td className="py-3 px-3.5 text-right font-medium">{row.goldOutMg ? formatGrams(row.goldOutMg) : '—'}</td>
-                              <td className="py-3 px-3.5 text-right font-medium">{row.cashInPkr ? formatMoney(row.cashInPkr) : '—'}</td>
-                              <td className="py-3 px-3.5 text-right font-medium">{row.cashOutPkr ? formatMoney(row.cashOutPkr) : '—'}</td>
-                              <td className="py-3 px-3.5 text-right font-bold">{formatGrams(row.runningGoldMg)}</td>
-                              <td className="py-3 px-3.5 text-right font-bold">{formatMoney(row.runningCashPkr)}</td>
+                            <tr key={row.id} className="hover:bg-muted/40">
+                              <td className="px-4 py-3 text-muted-foreground">{row.date}</td>
+                              <td className="px-4 py-3 font-semibold text-primary">{row.ref}</td>
+                              <td className="px-4 py-3 text-foreground truncate max-w-[200px]">{row.description}</td>
+                              <td className="px-4 py-3 text-right text-emerald-600 font-medium">{row.goldInMg ? `${formatGrams(row.goldInMg)}g` : '—'}</td>
+                              <td className="px-4 py-3 text-right text-destructive font-medium">{row.goldOutMg ? `${formatGrams(row.goldOutMg)}g` : '—'}</td>
+                              <td className="px-4 py-3 text-right text-emerald-600 font-medium">{row.cashInPkr ? formatMoney(row.cashInPkr) : '—'}</td>
+                              <td className="px-4 py-3 text-right text-destructive font-medium">{row.cashOutPkr ? formatMoney(row.cashOutPkr) : '—'}</td>
+                              <td className="px-4 py-3 text-right font-bold text-foreground">{formatGrams(row.runningGoldMg)}g</td>
+                              <td className="px-4 py-3 text-right font-bold text-foreground">{formatMoney(row.runningCashPkr)}</td>
                             </tr>
                           ))
                         )}
                       </tbody>
                     </table>
-                  </TabsContent>
+                  </div>
+                </TabsContent>
 
-                  {/* Tab 2: Bills */}
-                  <TabsContent value="bills" className="flex-1 overflow-y-auto mt-0 border rounded-md">
-                    <table className="w-full text-left text-xs border-collapse font-sans">
-                      <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
+                {/* Bills Tab */}
+                <TabsContent value="bills" className="pt-4">
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-muted/50 font-semibold text-muted-foreground uppercase border-b border-border">
                         <tr>
-                          <th className="py-2 px-3">Bill #</th>
-                          <th className="py-2 px-3">Date</th>
-                          <th className="py-2 px-3 text-right">Net Wt</th>
-                          <th className="py-2 px-3 text-right">Rate</th>
-                          <th className="py-2 px-3 text-right">Total</th>
-                          <th className="py-2 px-3 text-right">Wasool</th>
-                          <th className="py-2 px-3 text-right">Balance</th>
+                          <th className="px-4 py-3">Bill #</th>
+                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3 text-right">Net Wt</th>
+                          <th className="px-4 py-3 text-right">Rate</th>
+                          <th className="px-4 py-3 text-right">Total</th>
+                          <th className="px-4 py-3 text-right">Paid</th>
+                          <th className="px-4 py-3 text-right">Balance</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border/60 font-mono">
+                      <tbody className="divide-y divide-border">
                         {customerBills.map((b) => (
                           <tr key={b.id} className="hover:bg-muted/40">
-                            <td className="py-2 px-3 font-bold text-amber-700">#{b.billNo}</td>
-                            <td className="py-2 px-3">{b.date}</td>
-                            <td className="py-2 px-3 text-right font-semibold">{formatGrams(b.netWeightMg)}g</td>
-                            <td className="py-2 px-3 text-right">{b.goldRatePkr.toLocaleString()}</td>
-                            <td className="py-2 px-3 text-right font-bold">{formatMoney(b.totalPricePkr)}</td>
-                            <td className="py-2 px-3 text-right text-emerald-700">{formatMoney(b.wasoolPkr)}</td>
-                            <td className="py-2 px-3 text-right text-red-600 font-bold">{formatMoney(b.balancePkr)}</td>
+                            <td className="px-4 py-3 font-semibold text-foreground">#{b.billNo}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{b.date}</td>
+                            <td className="px-4 py-3 text-right font-medium">{formatGrams(b.netWeightMg)}g</td>
+                            <td className="px-4 py-3 text-right text-muted-foreground">Rs {b.goldRatePkr.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-bold text-foreground">{formatMoney(b.totalPricePkr)}</td>
+                            <td className="px-4 py-3 text-right text-emerald-600 font-medium">{formatMoney(b.wasoolPkr)}</td>
+                            <td className="px-4 py-3 text-right font-bold text-destructive">{formatMoney(b.balancePkr)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                  </TabsContent>
+                  </div>
+                </TabsContent>
 
-                  {/* Tab 3: Orders */}
-                  <TabsContent value="orders" className="flex-1 overflow-y-auto mt-0 border rounded-md p-3 space-y-2">
-                    {customerOrders.map((ord) => (
-                      <div key={ord.id} className="p-3 rounded border flex items-center justify-between text-xs">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-amber-700">#{ord.orderNo}</span>
-                            <span className="font-semibold text-foreground">{ord.itemDescription}</span>
-                            <Badge variant="outline" className="text-[10px]">{ord.status}</Badge>
-                          </div>
-                          <div className="text-muted-foreground text-[11px]">
-                            Weight: {formatGrams(ord.weightRequiredMg)}g ({ord.carat}K) • Due: {ord.deliveryDate} • Karigar: {ord.karigarName || 'Unassigned'}
-                          </div>
+                {/* Orders Tab */}
+                <TabsContent value="orders" className="pt-4 space-y-3">
+                  {customerOrders.map((ord) => (
+                    <div key={ord.id} className="p-4 rounded-lg border border-border bg-muted/20 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground">#{ord.orderNo}</span>
+                          <span className="font-semibold text-foreground">{ord.itemDescription}</span>
+                          <Badge variant="outline">{ord.status}</Badge>
                         </div>
-                        <div className="text-right font-mono text-xs">
-                          <div>Advance Cash: {formatMoney(ord.advanceCashPkr)}</div>
-                          <div>Making: {formatMoney(ord.makingChargesPkr)}</div>
-                        </div>
+                        <p className="text-muted-foreground mt-1">Weight: {formatGrams(ord.weightRequiredMg)}g ({ord.carat}K) · Due: {ord.deliveryDate}</p>
                       </div>
-                    ))}
-                  </TabsContent>
-
-                  {/* Tab 4: Tehleel */}
-                  <TabsContent value="tehleel" className="flex-1 overflow-y-auto mt-0 border rounded-md">
-                    <table className="w-full text-left text-xs border-collapse font-sans">
-                      <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                        <tr>
-                          <th className="py-2 px-3">Test #</th>
-                          <th className="py-2 px-3">Date</th>
-                          <th className="py-2 px-3 text-right">1st Wt</th>
-                          <th className="py-2 px-3 text-right">Pure Gold</th>
-                          <th className="py-2 px-3 text-right">Purity Karat</th>
-                          <th className="py-2 px-3 text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/60 font-mono">
-                        {customerTehleels.map((t) => (
-                          <tr key={t.id} className="hover:bg-muted/40">
-                            <td className="py-2 px-3 font-bold text-amber-700">{t.testNo}</td>
-                            <td className="py-2 px-3">{t.date}</td>
-                            <td className="py-2 px-3 text-right">{formatGrams(t.firstWeightMg)}g</td>
-                            <td className="py-2 px-3 text-right font-bold text-amber-600">{formatGrams(t.pureGoldMg)}g</td>
-                            <td className="py-2 px-3 text-right font-bold">{t.carat}K ({t.permille}‰)</td>
-                            <td className="py-2 px-3 text-right">{formatMoney(t.amountPkr)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </TabsContent>
-
-                  {/* Tab 5: Notes */}
-                  <TabsContent value="notes" className="p-4 border rounded-md text-xs space-y-2 mt-0">
-                    <Label className="text-xs font-semibold">Special Customer Terms & Remarks</Label>
-                    <p className="p-3 bg-muted/40 rounded border text-muted-foreground font-mono">
-                      {selectedCustomer.notes || 'No special terms entered for this account.'}
-                    </p>
-                  </TabsContent>
-                </Tabs>
-              </div>
+                      <div className="text-right">
+                        <span className="font-bold text-foreground block">{formatMoney(ord.makingChargesPkr)}</span>
+                        <span className="text-[11px] text-muted-foreground">Making Fee</span>
+                      </div>
+                    </div>
+                  ))}
+                </TabsContent>
+              </Tabs>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-muted-foreground">
-              <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
-              <h3 className="font-semibold text-base text-foreground">No Customer Selected</h3>
-              <p className="text-xs max-w-sm mt-1">
-                Select a customer from the left list, or click "+ New Customer" to register a new account.
-              </p>
+            <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
+              <Users className="size-12 stroke-1 text-muted-foreground/60 mb-2" />
+              <h3 className="font-semibold text-foreground">No customer selected</h3>
+              <p className="text-xs mt-1">Click a customer account from the left directory to view full details.</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* MODAL 1: New / Edit Customer Sheet */}
+      {/* MODAL 1: Create / Edit Customer Sheet */}
       <Sheet open={customerSheetOpen} onOpenChange={setCustomerSheetOpen}>
         <SheetContent className="w-[450px] sm:max-w-[500px] flex flex-col p-6 overflow-y-auto">
           <SheetHeader className="border-b pb-3">
-            <SheetTitle className="text-base font-bold text-amber-900 dark:text-amber-300">
+            <SheetTitle className="text-lg font-bold text-foreground">
               {editingCustomer ? `Edit Customer — ${editingCustomer.id}` : 'Create New Customer Account'}
             </SheetTitle>
-            <SheetDescription className="text-xs">
+            <SheetDescription className="text-xs text-muted-foreground">
               Fill in customer profile and opening dual ledger balances (Gold & Cash).
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleSaveCustomer} className="space-y-3.5 py-4 text-xs">
-            <div className="space-y-1">
+          <form onSubmit={handleSaveCustomer} className="space-y-4 py-4 text-sm">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Full Name *</Label>
               <Input
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="e.g. Sheikh Tariq Mahmood"
-                className="h-8 text-xs"
+                className="h-10"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Phone Number *</Label>
                 <Input
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
                   placeholder="0300-1234567"
-                  className="h-8 text-xs font-mono"
+                  className="h-10"
                   required
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Alternate Phone</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Alternate Phone</Label>
                 <Input
                   value={formAltPhone}
                   onChange={(e) => setFormAltPhone(e.target.value)}
                   placeholder="042-3712345"
-                  className="h-8 text-xs font-mono"
+                  className="h-10"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">CNIC Number</Label>
-                <Input
-                  value={formCnic}
-                  onChange={(e) => setFormCnic(e.target.value)}
-                  placeholder="35201-xxxxxxx-x"
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">City</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">City</Label>
                 <Input
                   value={formCity}
                   onChange={(e) => setFormCity(e.target.value)}
                   placeholder="Lahore / Karachi"
-                  className="h-8 text-xs"
+                  className="h-10"
                 />
               </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs">Address / Shop</Label>
-              <Input
-                value={formAddress}
-                onChange={(e) => setFormAddress(e.target.value)}
-                placeholder="e.g. Sarafa Bazar, Shop #12"
-                className="h-8 text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Customer Group</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Customer Group</Label>
                 <Select value={formGroup} onValueChange={setFormGroup}>
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -713,32 +685,41 @@ export const CustomersPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs">Credit Limit (PKR)</Label>
-                <MoneyInput
-                  value={formCreditLimitPkr}
-                  onChange={setFormCreditLimitPkr}
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
             </div>
 
-            {/* Opening Balances (Only for new customer) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Shop / Residential Address</Label>
+              <Input
+                value={formAddress}
+                onChange={(e) => setFormAddress(e.target.value)}
+                placeholder="e.g. Sarafa Bazar, Shop #12"
+                className="h-10"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Credit Limit (PKR)</Label>
+              <MoneyInput
+                value={formCreditLimitPkr}
+                onChange={setFormCreditLimitPkr}
+                className="h-10"
+              />
+            </div>
+
+            {/* Opening Balances */}
             {!editingCustomer && (
-              <div className="p-3 bg-muted/40 rounded border space-y-3">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-amber-800 dark:text-amber-400">
+              <div className="p-4 bg-muted/50 rounded-lg border border-border space-y-3">
+                <span className="text-xs font-semibold uppercase text-muted-foreground block">
                   Opening Dual Balances (Optional)
-                </h4>
+                </span>
                 <div className="space-y-1">
-                  <Label className="text-xs">Opening Gold Balance (Tola/Masha/Ratti/Grams)</Label>
+                  <Label className="text-xs">Opening Gold Balance</Label>
                   <WeightInput
                     value={formOpeningGoldMg}
                     onChange={setFormOpeningGoldMg}
                     allowNegative={true}
                     compact={true}
                   />
-                  <p className="text-[10px] text-muted-foreground">Positive = customer owes gold; Negative = shop owes</p>
                 </div>
 
                 <div className="space-y-1">
@@ -747,26 +728,25 @@ export const CustomersPage: React.FC = () => {
                     value={formOpeningCashPkr}
                     onChange={setFormOpeningCashPkr}
                     allowNegative={true}
-                    className="h-8 text-xs"
+                    className="h-10"
                   />
-                  <p className="text-[10px] text-muted-foreground">Positive = customer owes cash; Negative = advance credit</p>
                 </div>
               </div>
             )}
 
             <div className="flex items-center justify-between pt-2">
               <div className="space-y-0.5">
-                <Label className="text-xs font-semibold cursor-pointer">SMS Transaction Alerts</Label>
-                <p className="text-[10px] text-muted-foreground">Send auto SMS on bills and ledger receipts</p>
+                <Label className="text-xs font-semibold">SMS Transaction Alerts</Label>
+                <p className="text-[11px] text-muted-foreground">Send auto SMS on bills and ledger receipts</p>
               </div>
               <Switch checked={formSmsAlerts} onCheckedChange={setFormSmsAlerts} />
             </div>
 
             <SheetFooter className="pt-4 border-t">
-              <Button type="button" variant="outline" size="sm" onClick={() => setCustomerSheetOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setCustomerSheetOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold">
+              <Button type="submit" className="font-semibold">
                 {editingCustomer ? 'Save Changes' : 'Create Account'}
               </Button>
             </SheetFooter>
@@ -774,12 +754,12 @@ export const CustomersPage: React.FC = () => {
         </SheetContent>
       </Sheet>
 
-      {/* MODAL 2: Credit (+) / Debit (−) Dialog (I+C, I+D) */}
+      {/* MODAL 2: Credit / Debit Voucher Dialog */}
       <Dialog open={txDialogOpen} onOpenChange={setTxDialogOpen}>
         <DialogContent className="max-w-md p-6">
           <DialogHeader className="border-b pb-3">
-            <DialogTitle className={`text-base font-bold flex items-center gap-2 ${txType === 'credit' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600'}`}>
-              {txType === 'credit' ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+            <DialogTitle className={`text-base font-bold flex items-center gap-2 ${txType === 'credit' ? 'text-emerald-600' : 'text-destructive'}`}>
+              {txType === 'credit' ? <ArrowDownLeft className="size-5" /> : <ArrowUpRight className="size-5" />}
               {txType === 'credit' ? 'Customer Credit (+) Voucher' : 'Customer Debit (−) Voucher'}
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
@@ -787,45 +767,42 @@ export const CustomersPage: React.FC = () => {
             </p>
           </DialogHeader>
 
-          <div className="space-y-3.5 py-3 text-xs">
-            {/* Medium Toggle: Cash or Gold */}
-            <div className="space-y-1">
+          <div className="space-y-4 py-3 text-sm">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Transaction Medium</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
+              <div className="grid grid-cols-2 gap-3">
+                <Button
                   type="button"
+                  variant={txMedium === 'cash' ? 'default' : 'outline'}
                   onClick={() => setTxMedium('cash')}
-                  className={`p-2 rounded border text-center font-bold text-xs transition-colors ${
-                    txMedium === 'cash' ? 'bg-amber-500 text-white border-amber-600' : 'bg-muted hover:bg-muted/80'
-                  }`}
+                  className="font-semibold"
                 >
                   Cash (PKR)
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={txMedium === 'gold' ? 'default' : 'outline'}
                   onClick={() => setTxMedium('gold')}
-                  className={`p-2 rounded border text-center font-bold text-xs transition-colors ${
-                    txMedium === 'gold' ? 'bg-amber-500 text-white border-amber-600' : 'bg-muted hover:bg-muted/80'
-                  }`}
+                  className="font-semibold"
                 >
                   Gold Weight (Au)
-                </button>
+                </Button>
               </div>
             </div>
 
             {txMedium === 'cash' ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Cash Amount (PKR)</Label>
                 <MoneyInput
                   value={txAmountPkr}
                   onChange={setTxAmountPkr}
                   autoFocus
-                  className="h-10 text-base font-bold"
+                  className="h-11 text-base font-bold"
                 />
               </div>
             ) : (
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold">Gold Weight (Tola / Masha / Ratti / Grams)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Gold Weight</Label>
                 <WeightInput
                   value={txWeightMg}
                   onChange={setTxWeightMg}
@@ -834,45 +811,44 @@ export const CustomersPage: React.FC = () => {
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Reference / Voucher #</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Reference #</Label>
                 <Input
                   value={txRef}
                   onChange={(e) => setTxRef(e.target.value)}
-                  className="h-8 font-mono text-xs"
+                  className="h-10"
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Date</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Date</Label>
                 <Input
                   type="date"
                   defaultValue={new Date().toISOString().split('T')[0]}
-                  className="h-8 font-mono text-xs"
+                  className="h-10"
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Remarks / Narration</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Narration / Remarks</Label>
               <Input
                 value={txRemarks}
                 onChange={(e) => setTxRemarks(e.target.value)}
                 placeholder="e.g. Account settlement / token advance"
-                className="h-8 text-xs"
+                className="h-10"
               />
             </div>
           </div>
 
-          <DialogFooter className="pt-2 border-t">
-            <Button variant="outline" size="sm" onClick={() => setTxDialogOpen(false)}>
+          <DialogFooter className="pt-3 border-t">
+            <Button variant="outline" onClick={() => setTxDialogOpen(false)}>
               Cancel
             </Button>
             <Button
-              size="sm"
               onClick={handleSaveTx}
-              className={`font-semibold ${txType === 'credit' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+              className={`font-semibold ${txType === 'credit' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-destructive text-white'}`}
             >
-              Save Voucher (F8)
+              Save Voucher
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -880,3 +856,4 @@ export const CustomersPage: React.FC = () => {
     </div>
   )
 }
+export default CustomersPage

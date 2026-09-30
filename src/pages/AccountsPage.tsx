@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { formatGrams, formatMoney } from '@/lib/gold-math'
+import { PageTitle } from '@/components/shared/PageTitle'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,13 +27,12 @@ import {
   BookOpen,
   Plus,
   Lock,
-  Printer,
-  FileSpreadsheet,
-  Calendar,
   Wallet,
-  Coins,
   Receipt,
-  Search,
+  Scale,
+  TrendingDown,
+  ArrowDownLeft,
+  ArrowUpRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -84,277 +85,296 @@ export const AccountsPage: React.FC = () => {
   const netCashInHand = totalCashIn - totalCashOut - totalExpenses
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      {/* Top Header */}
-      <div className="h-12 border-b px-4 flex items-center justify-between bg-card/60 select-none shrink-0">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-amber-600" />
-          <h1 className="font-bold text-sm text-foreground">Day Book, Dual Cash & Gold Accounting (F6)</h1>
-        </div>
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-6 space-y-6">
+      {/* 1. Page Header */}
+      <PageTitle
+        description="Daily Roznamcha, dual cash book, gold bullion journal, and shop expenses."
+        action={
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setExpenseDialogOpen(true)}
+              className="gap-2"
+            >
+              <Plus className="size-4" /> Add Expense
+            </Button>
+            <Button
+              size="lg"
+              variant={dayClosed ? "secondary" : "default"}
+              onClick={handleDayClose}
+              disabled={dayClosed}
+              className="gap-2 font-medium"
+            >
+              <Lock className="size-4" />
+              {dayClosed ? 'Day Book Locked' : 'Close & Lock Day'}
+            </Button>
+          </div>
+        }
+      >
+        Day Book & Accounts
+      </PageTitle>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setExpenseDialogOpen(true)}
-            className="h-8 text-xs gap-1.5 font-semibold"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add Expense
-          </Button>
+      {/* 2. Top Summary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Cash In (Received)</span>
+            <ArrowDownLeft className="size-5 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-emerald-600 mt-2">{formatMoney(totalCashIn)}</p>
+          <span className="text-xs text-muted-foreground">Daily Inflow</span>
+        </Card>
 
-          <Button
-            size="sm"
-            onClick={handleDayClose}
-            disabled={dayClosed}
-            className={`h-8 text-xs font-semibold gap-1.5 ${dayClosed ? 'bg-muted text-muted-foreground' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-          >
-            <Lock className="h-3.5 w-3.5" />
-            {dayClosed ? 'Day Closed (Locked)' : 'Day Close (Lock)'}
-          </Button>
-        </div>
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Cash Out (Disbursed)</span>
+            <ArrowUpRight className="size-5 text-destructive" />
+          </div>
+          <p className="text-2xl font-bold text-destructive mt-2">{formatMoney(totalCashOut)}</p>
+          <span className="text-xs text-muted-foreground">Daily Outflow</span>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Net Vault Cash</span>
+            <Wallet className="size-5 text-primary" />
+          </div>
+          <p className="text-2xl font-bold text-foreground mt-2">{formatMoney(netCashInHand)}</p>
+          <span className="text-xs text-muted-foreground">After Shop Expenses</span>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase text-muted-foreground">Gold Net Movement</span>
+            <Scale className="size-5 text-amber-500" />
+          </div>
+          <p className="text-2xl font-bold text-foreground mt-2">
+            {formatGrams(Math.abs(totalGoldIn - totalGoldOut))}g
+          </p>
+          <span className="text-xs text-muted-foreground font-mono">In: {formatGrams(totalGoldIn)}g · Out: {formatGrams(totalGoldOut)}g</span>
+        </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-4 border-b bg-card/30">
-          <TabsList className="h-10 bg-transparent p-0 gap-4">
-            <TabsTrigger value="day_book" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Day Book (Combined)
-            </TabsTrigger>
-            <TabsTrigger value="cash_book" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Cash Book
-            </TabsTrigger>
-            <TabsTrigger value="gold_book" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Gold Book (Au)
-            </TabsTrigger>
-            <TabsTrigger value="balances" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Customer Balances
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs font-semibold data-[state=active]:border-b-2 data-[state=active]:border-amber-600 rounded-none h-10 px-2">
-              Shop Expenses ({expenses.length})
-            </TabsTrigger>
-          </TabsList>
-        </div>
+      {/* 3. Tabbed Ledger Sheets */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <TabsList className="bg-card border border-border p-1 rounded-lg">
+          <TabsTrigger value="day_book" className="text-xs font-medium">Day Book (Combined)</TabsTrigger>
+          <TabsTrigger value="cash_book" className="text-xs font-medium">Cash Book (PKR)</TabsTrigger>
+          <TabsTrigger value="gold_book" className="text-xs font-medium">Gold Book (Au)</TabsTrigger>
+          <TabsTrigger value="balances" className="text-xs font-medium">Customer Balances</TabsTrigger>
+          <TabsTrigger value="expenses" className="text-xs font-medium">Shop Expenses ({expenses.length})</TabsTrigger>
+        </TabsList>
 
-        {/* Tab 1: Day Book */}
-        <TabsContent value="day_book" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="p-3 rounded-lg border bg-card shadow-xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Total Cash Received</span>
-              <div className="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                {formatMoney(totalCashIn)}
-              </div>
-            </div>
-            <div className="p-3 rounded-lg border bg-card shadow-xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Total Cash Disbursed</span>
-              <div className="text-lg font-mono font-bold text-red-600">
-                {formatMoney(totalCashOut)}
-              </div>
-            </div>
-            <div className="p-3 rounded-lg border bg-card shadow-xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Total Gold Received (In)</span>
-              <div className="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                {formatGrams(totalGoldIn)}g
-              </div>
-            </div>
-            <div className="p-3 rounded-lg border bg-card shadow-xs">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">Total Gold Given (Out)</span>
-              <div className="text-lg font-mono font-bold text-red-600">
-                {formatGrams(totalGoldOut)}g
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Ref #</th>
-                  <th className="py-2.5 px-3">Description</th>
-                  <th className="py-2.5 px-3 text-right text-emerald-700">Gold In (g)</th>
-                  <th className="py-2.5 px-3 text-right text-red-600">Gold Out (g)</th>
-                  <th className="py-2.5 px-3 text-right text-emerald-700">Cash In (PKR)</th>
-                  <th className="py-2.5 px-3 text-right text-red-600">Cash Out (PKR)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {ledger.map((l) => (
-                  <tr key={l.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="py-2.5 px-3">{l.date}</td>
-                    <td className="py-2.5 px-3 font-bold text-amber-700">{l.ref}</td>
-                    <td className="py-2.5 px-3 font-sans text-foreground">{l.description}</td>
-                    <td className="py-2.5 px-3 text-right text-emerald-700">{l.goldInMg ? formatGrams(l.goldInMg) : '—'}</td>
-                    <td className="py-2.5 px-3 text-right text-red-600">{l.goldOutMg ? formatGrams(l.goldOutMg) : '—'}</td>
-                    <td className="py-2.5 px-3 text-right text-emerald-700">{l.cashInPkr ? formatMoney(l.cashInPkr) : '—'}</td>
-                    <td className="py-2.5 px-3 text-right text-red-600">{l.cashOutPkr ? formatMoney(l.cashOutPkr) : '—'}</td>
+        {/* TAB 1: DAY BOOK */}
+        <TabsContent value="day_book" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Ref #</th>
+                    <th className="px-6 py-4">Description</th>
+                    <th className="px-6 py-4 text-right">Gold In (g)</th>
+                    <th className="px-6 py-4 text-right">Gold Out (g)</th>
+                    <th className="px-6 py-4 text-right">Cash In (PKR)</th>
+                    <th className="px-6 py-4 text-right">Cash Out (PKR)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {ledger.map((l) => (
+                    <tr key={l.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{l.date}</td>
+                      <td className="px-6 py-4 font-semibold text-primary">{l.ref}</td>
+                      <td className="px-6 py-4 font-medium text-foreground">{l.description}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-emerald-600">
+                        {l.goldInMg ? `${formatGrams(l.goldInMg)}g` : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-destructive">
+                        {l.goldOutMg ? `${formatGrams(l.goldOutMg)}g` : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-emerald-600">
+                        {l.cashInPkr ? formatMoney(l.cashInPkr) : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-destructive">
+                        {l.cashOutPkr ? formatMoney(l.cashOutPkr) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </TabsContent>
 
-        {/* Tab 2: Cash Book */}
-        <TabsContent value="cash_book" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="p-4 rounded-lg border bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-xs font-bold uppercase text-emerald-800 dark:text-emerald-300">Net Cash In Vault / Drawer</span>
-              <p className="text-[11px] text-muted-foreground">Total cash collections minus payments and daily shop expenses</p>
+        {/* TAB 2: CASH BOOK */}
+        <TabsContent value="cash_book" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Type</th>
+                    <th className="px-6 py-4">Ref #</th>
+                    <th className="px-6 py-4">Particulars</th>
+                    <th className="px-6 py-4 text-right">Receipt (Cash In)</th>
+                    <th className="px-6 py-4 text-right">Payment (Cash Out)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {ledger.filter(l => l.cashInPkr > 0 || l.cashOutPkr > 0).map((l) => (
+                    <tr key={l.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{l.date}</td>
+                      <td className="px-6 py-4 capitalize font-medium">{l.type}</td>
+                      <td className="px-6 py-4 font-semibold text-primary">{l.ref}</td>
+                      <td className="px-6 py-4 text-foreground">{l.description}</td>
+                      <td className="px-6 py-4 text-right font-bold text-emerald-600">
+                        {l.cashInPkr ? formatMoney(l.cashInPkr) : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-destructive">
+                        {l.cashOutPkr ? formatMoney(l.cashOutPkr) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="text-2xl font-mono font-black text-emerald-900 dark:text-emerald-100">
-              {formatMoney(netCashInHand)}
+          </div>
+        </TabsContent>
+
+        {/* TAB 3: GOLD BOOK */}
+        <TabsContent value="gold_book" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Ref #</th>
+                    <th className="px-6 py-4">Particulars</th>
+                    <th className="px-6 py-4 text-right">Gold In (g)</th>
+                    <th className="px-6 py-4 text-right">Gold Out (g)</th>
+                    <th className="px-6 py-4 text-right font-bold">Running Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {ledger.filter(l => l.goldInMg > 0 || l.goldOutMg > 0).map((l) => (
+                    <tr key={l.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{l.date}</td>
+                      <td className="px-6 py-4 font-semibold text-primary">{l.ref}</td>
+                      <td className="px-6 py-4 text-foreground">{l.description}</td>
+                      <td className="px-6 py-4 text-right font-bold text-emerald-600">
+                        {l.goldInMg ? `${formatGrams(l.goldInMg)}g` : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-destructive">
+                        {l.goldOutMg ? `${formatGrams(l.goldOutMg)}g` : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-foreground">
+                        {formatGrams(l.runningGoldMg)}g
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
+        </TabsContent>
 
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Ref</th>
-                  <th className="py-2.5 px-3">Particulars</th>
-                  <th className="py-2.5 px-3 text-right text-emerald-700">Receipt (In)</th>
-                  <th className="py-2.5 px-3 text-right text-red-600">Payment (Out)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {ledger.filter(l => l.cashInPkr > 0 || l.cashOutPkr > 0).map((l) => (
-                  <tr key={l.id}>
-                    <td className="py-2.5 px-3">{l.date}</td>
-                    <td className="py-2.5 px-3 font-sans capitalize">{l.type}</td>
-                    <td className="py-2.5 px-3 font-bold text-amber-700">{l.ref}</td>
-                    <td className="py-2.5 px-3 font-sans">{l.description}</td>
-                    <td className="py-2.5 px-3 text-right text-emerald-700">{l.cashInPkr ? formatMoney(l.cashInPkr) : '—'}</td>
-                    <td className="py-2.5 px-3 text-right text-red-600">{l.cashOutPkr ? formatMoney(l.cashOutPkr) : '—'}</td>
+        {/* TAB 4: CUSTOMER BALANCES */}
+        <TabsContent value="balances" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4">ID</th>
+                    <th className="px-6 py-4">Customer Name</th>
+                    <th className="px-6 py-4">Phone</th>
+                    <th className="px-6 py-4">City</th>
+                    <th className="px-6 py-4 text-right">Gold Balance</th>
+                    <th className="px-6 py-4 text-right">Cash Balance</th>
+                    <th className="px-6 py-4">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {customers.map((c) => (
+                    <tr key={c.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 text-muted-foreground font-mono text-xs">{c.id}</td>
+                      <td className="px-6 py-4 font-medium text-foreground">{c.name}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{c.phone}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{c.city}</td>
+                      <td className="px-6 py-4 text-right font-bold">
+                        <span className={c.goldBalanceMg > 0 ? 'text-destructive' : c.goldBalanceMg < 0 ? 'text-emerald-600' : 'text-muted-foreground'}>
+                          {formatGrams(c.goldBalanceMg)}g
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold">
+                        <span className={c.cashBalancePkr > 0 ? 'text-destructive' : c.cashBalancePkr < 0 ? 'text-emerald-600' : 'text-muted-foreground'}>
+                          {formatMoney(c.cashBalancePkr)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={c.cashBalancePkr > 0 ? 'destructive' : c.cashBalancePkr < 0 ? 'success' : 'outline'}>
+                          {c.cashBalancePkr > 0 ? 'Debit' : c.cashBalancePkr < 0 ? 'Credit' : 'Nil'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </TabsContent>
 
-        {/* Tab 3: Gold Book */}
-        <TabsContent value="gold_book" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Ref</th>
-                  <th className="py-2.5 px-3">Particulars</th>
-                  <th className="py-2.5 px-3 text-right text-emerald-700">Gold In (g)</th>
-                  <th className="py-2.5 px-3 text-right text-red-600">Gold Out (g)</th>
-                  <th className="py-2.5 px-3 text-right font-bold">Running Balance (g)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {ledger.filter(l => l.goldInMg > 0 || l.goldOutMg > 0).map((l) => (
-                  <tr key={l.id}>
-                    <td className="py-2.5 px-3">{l.date}</td>
-                    <td className="py-2.5 px-3 font-bold text-amber-700">{l.ref}</td>
-                    <td className="py-2.5 px-3 font-sans">{l.description}</td>
-                    <td className="py-2.5 px-3 text-right text-emerald-700">{l.goldInMg ? formatGrams(l.goldInMg) : '—'}</td>
-                    <td className="py-2.5 px-3 text-right text-red-600">{l.goldOutMg ? formatGrams(l.goldOutMg) : '—'}</td>
-                    <td className="py-2.5 px-3 text-right font-bold">{formatGrams(l.runningGoldMg)}g</td>
+        {/* TAB 5: EXPENSES */}
+        <TabsContent value="expenses" className="pt-4">
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Category</th>
+                    <th className="px-6 py-4 text-right">Amount (PKR)</th>
+                    <th className="px-6 py-4">Paid To</th>
+                    <th className="px-6 py-4">Note</th>
+                    <th className="px-6 py-4">Operator</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-
-        {/* Tab 4: Customer Balances */}
-        <TabsContent value="balances" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">ID</th>
-                  <th className="py-2.5 px-3">Customer Name</th>
-                  <th className="py-2.5 px-3">Phone</th>
-                  <th className="py-2.5 px-3">City</th>
-                  <th className="py-2.5 px-3 text-right">Gold Balance (g)</th>
-                  <th className="py-2.5 px-3 text-right">Cash Balance (PKR)</th>
-                  <th className="py-2.5 px-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 font-mono">
-                {customers.map((c) => (
-                  <tr key={c.id}>
-                    <td className="py-2.5 px-3 font-bold text-muted-foreground">{c.id}</td>
-                    <td className="py-2.5 px-3 font-sans font-semibold text-foreground">{c.name}</td>
-                    <td className="py-2.5 px-3 font-sans">{c.phone}</td>
-                    <td className="py-2.5 px-3 font-sans">{c.city}</td>
-                    <td className="py-2.5 px-3 text-right font-bold">
-                      <span className={c.goldBalanceMg > 0 ? 'text-red-600' : c.goldBalanceMg < 0 ? 'text-emerald-700' : 'text-muted-foreground'}>
-                        {formatGrams(c.goldBalanceMg)}g
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-bold">
-                      <span className={c.cashBalancePkr > 0 ? 'text-red-600' : c.cashBalancePkr < 0 ? 'text-emerald-700' : 'text-muted-foreground'}>
-                        {formatMoney(c.cashBalancePkr)}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-sans">
-                      <Badge variant="outline" className="text-[10px]">
-                        {c.cashBalancePkr > 0 ? 'Debit' : c.cashBalancePkr < 0 ? 'Credit' : 'Nil'}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-
-        {/* Tab 5: Expenses */}
-        <TabsContent value="expenses" className="flex-1 overflow-y-auto p-4 mt-0 space-y-4">
-          <div className="rounded-lg border bg-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead className="bg-muted sticky top-0 border-b text-[11px] font-semibold text-muted-foreground">
-                <tr>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Category</th>
-                  <th className="py-2.5 px-3 text-right">Amount (PKR)</th>
-                  <th className="py-2.5 px-3">Paid To</th>
-                  <th className="py-2.5 px-3">Note</th>
-                  <th className="py-2.5 px-3">Operator</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {expenses.map((e) => (
-                  <tr key={e.id}>
-                    <td className="py-2.5 px-3 font-mono">{e.date}</td>
-                    <td className="py-2.5 px-3 font-semibold">{e.category}</td>
-                    <td className="py-2.5 px-3 font-mono text-right font-bold text-red-600">{formatMoney(e.amountPkr)}</td>
-                    <td className="py-2.5 px-3">{e.paidTo}</td>
-                    <td className="py-2.5 px-3 text-muted-foreground text-[11px]">{e.note}</td>
-                    <td className="py-2.5 px-3 font-mono text-[11px]">{e.user}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {expenses.map((e) => (
+                    <tr key={e.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{e.date}</td>
+                      <td className="px-6 py-4 font-semibold text-foreground">{e.category}</td>
+                      <td className="px-6 py-4 text-right font-bold text-destructive">{formatMoney(e.amountPkr)}</td>
+                      <td className="px-6 py-4 text-foreground">{e.paidTo}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{e.note}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{e.user}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Expense Modal */}
+      {/* Record Expense Dialog */}
       <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
         <DialogContent className="max-w-md p-6">
           <DialogHeader className="border-b pb-3">
-            <DialogTitle className="text-base font-bold text-amber-900 dark:text-amber-300">
+            <DialogTitle className="text-lg font-bold text-foreground">
               Record Shop Expense
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleAddExpense} className="space-y-3.5 py-3 text-xs">
-            <div className="space-y-1">
+          <form onSubmit={handleAddExpense} className="space-y-4 py-3 text-sm">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Expense Category *</Label>
               <Select value={expCategory} onValueChange={setExpCategory}>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -368,41 +388,41 @@ export const AccountsPage: React.FC = () => {
               </Select>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Amount (PKR) *</Label>
               <MoneyInput
                 value={expAmount}
                 onChange={setExpAmount}
                 autoFocus
-                className="h-9 font-bold"
+                className="h-11 font-bold"
               />
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Paid To / Recipient</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Paid To / Recipient</Label>
               <Input
                 value={expPaidTo}
                 onChange={(e) => setExpPaidTo(e.target.value)}
                 placeholder="e.g. Al-Madina Hotel, LESCO"
-                className="h-8 text-xs"
+                className="h-10"
               />
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Notes / Description</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Notes / Description</Label>
               <Input
                 value={expNote}
                 onChange={(e) => setExpNote(e.target.value)}
                 placeholder="e.g. Monthly office supplies"
-                className="h-8 text-xs"
+                className="h-10"
               />
             </div>
 
-            <DialogFooter className="pt-2 border-t">
-              <Button type="button" variant="outline" size="sm" onClick={() => setExpenseDialogOpen(false)}>
+            <DialogFooter className="pt-3 border-t">
+              <Button type="button" variant="outline" onClick={() => setExpenseDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold">
+              <Button type="submit" className="font-semibold">
                 Record Expense
               </Button>
             </DialogFooter>
@@ -412,3 +432,4 @@ export const AccountsPage: React.FC = () => {
     </div>
   )
 }
+export default AccountsPage
