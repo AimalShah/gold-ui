@@ -254,6 +254,11 @@ export interface UserAccount {
   avatar?: string
 }
 
+export type Expense = ExpenseEntry
+export type ExpenseCategory = ExpenseEntry['category']
+export type User = UserAccount
+export type Order = CustomerOrder
+
 export interface AppSettings {
   shopName: string
   address: string

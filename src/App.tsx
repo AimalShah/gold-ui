@@ -1,217 +1,35 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { TopBar } from '@/components/layout/TopBar'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { StatusFooter } from '@/components/layout/StatusFooter'
-import { HelpDialog } from '@/components/modals/HelpDialog'
-import { CommandPalette } from '@/components/modals/CommandPalette'
-import { CalculatorDialog } from '@/components/modals/CalculatorDialog'
-import { MandiDialog } from '@/components/modals/MandiDialog'
-import { MixingChooserDialog } from '@/components/modals/MixingChooserDialog'
-import { SwitchUserDialog } from '@/components/modals/SwitchUserDialog'
-import { BackOfficeLoginModal } from '@/components/modals/BackOfficeLoginModal'
+import { AppRouter } from '@/components/layout/AppRouter'
+import { GlobalModals } from '@/components/modals/GlobalModals'
 import { Toaster } from '@/components/ui/sonner'
-
-// Page Components
-import { DashboardPage } from '@/pages/DashboardPage'
-import { BillingPage } from '@/pages/BillingPage'
-import { CustomersPage } from '@/pages/CustomersPage'
-import { BillsPage } from '@/pages/BillsPage'
-import { OrdersPage } from '@/pages/OrdersPage'
-import { TehleelPage } from '@/pages/TehleelPage'
-import { MixingPage } from '@/pages/MixingPage'
-import { InventoryPage } from '@/pages/InventoryPage'
-import { AccountsPage } from '@/pages/AccountsPage'
-import { ReportsPage } from '@/pages/ReportsPage'
-import { SmsPage } from '@/pages/SmsPage'
-import { SettingsPage } from '@/pages/SettingsPage'
+import { useGlobalShortcuts } from '@/hooks/useGlobalShortcuts'
 
 const MainAppContent: React.FC = () => {
-  const {
-    currentPage,
-    setCurrentPage,
-    helpOpen,
-    setHelpOpen,
-    commandOpen,
-    setCommandOpen,
-    calcOpen,
-    setCalcOpen,
-    mandiDialogOpen,
-    setMandiDialogOpen,
-    mixingDialogOpen,
-    setMixingDialogOpen,
-    switchUserOpen,
-    setSwitchUserOpen,
-    appMode,
-    switchToBackOffice,
-    switchToPos,
-  } = useApp()
-
-  // Global Keydown Handler for Shell-level shortcuts
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+K -> Command Palette
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        setCommandOpen(!commandOpen)
-        return
-      }
-
-      // Ctrl+U -> Switch User
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
-        e.preventDefault()
-        setSwitchUserOpen(true)
-        return
-      }
-
-      // Ctrl+F12 -> Settings
-      if ((e.ctrlKey || e.metaKey) && e.key === 'F12') {
-        e.preventDefault()
-        setCurrentPage('settings')
-        return
-      }
-
-      // F1 -> Help
-      if (e.key === 'F1') {
-        e.preventDefault()
-        setHelpOpen(true)
-        return
-      }
-
-      // F2 -> Calculator
-      if (e.key === 'F2' && !e.ctrlKey) {
-        e.preventDefault()
-        setCalcOpen(true)
-        return
-      }
-
-      // F6 -> Accounts
-      if (e.key === 'F6') {
-        e.preventDefault()
-        setCurrentPage('accounts')
-        return
-      }
-
-      // F10 -> SMS
-      if (e.key === 'F10') {
-        e.preventDefault()
-        setCurrentPage('sms')
-        return
-      }
-
-      // F11 -> Mandi Modal
-      if (e.key === 'F11') {
-        e.preventDefault()
-        setMandiDialogOpen(true)
-        return
-      }
-
-      // Alt Shortcuts for Modes & Pages
-      if (e.altKey) {
-        const k = e.key.toLowerCase()
-        if (k === 'm') {
-          e.preventDefault()
-          switchToBackOffice()
-          return
-        } else if (k === 'p' || k === 'b') {
-          e.preventDefault()
-          switchToPos()
-          return
-        } else if (k === '1') {
-          e.preventDefault()
-          setCurrentPage('dashboard')
-        } else if (k === 'i') {
-          e.preventDefault()
-          setCurrentPage('inventory')
-        } else if (k === 'r') {
-          e.preventDefault()
-          setCurrentPage('reports')
-        }
-      }
-
-      // Single letter keys outside text inputs
-      const isInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
-      if (!isInput && !e.altKey && !e.ctrlKey && !e.metaKey) {
-        const k = e.key.toUpperCase()
-        if (k === 'M') {
-          e.preventDefault()
-          setMixingDialogOpen(true)
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleGlobalKeyDown)
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [
-    commandOpen,
-    setCommandOpen,
-    setSwitchUserOpen,
-    setCurrentPage,
-    setHelpOpen,
-    setCalcOpen,
-    setMandiDialogOpen,
-    setMixingDialogOpen,
-    switchToBackOffice,
-    switchToPos,
-  ])
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <DashboardPage />
-      case 'billing':
-        return <BillingPage />
-      case 'customers':
-        return <CustomersPage />
-      case 'bills':
-        return <BillsPage />
-      case 'orders':
-        return <OrdersPage />
-      case 'tehleel':
-        return <TehleelPage />
-      case 'mixing':
-        return <MixingPage />
-      case 'inventory':
-        return <InventoryPage />
-      case 'accounts':
-        return <AccountsPage />
-      case 'reports':
-        return <ReportsPage />
-      case 'sms':
-        return <SmsPage />
-      case 'settings':
-        return <SettingsPage />
-      default:
-        return <BillingPage />
-    }
-  }
+  const { appMode } = useApp()
+  useGlobalShortcuts()
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground font-sans select-none">
-      {/* 1. Global Top Bar */}
+      {/* 1. Global Header */}
       <TopBar />
 
-      {/* 2. Main Middle Workspace: Sidebar (only on dashboard/backoffice) + Page Canvas */}
+      {/* 2. Main Workspace */}
       <div className="flex-1 flex overflow-hidden">
         {appMode === 'backoffice' && <Sidebar />}
         <main className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-          {appMode === 'pos' ? <BillingPage /> : renderCurrentPage()}
+          <AppRouter />
         </main>
       </div>
 
-      {/* 3. Global Status Footer (only on backoffice) */}
+      {/* 3. Global Status Footer */}
       {appMode === 'backoffice' && <StatusFooter />}
 
-      {/* Global Modals */}
-      <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
-      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
-      <CalculatorDialog open={calcOpen} onOpenChange={setCalcOpen} />
-      <MandiDialog open={mandiDialogOpen} onOpenChange={setMandiDialogOpen} />
-      <MixingChooserDialog open={mixingDialogOpen} onOpenChange={setMixingDialogOpen} />
-      <SwitchUserDialog open={switchUserOpen} onOpenChange={setSwitchUserOpen} />
-      <BackOfficeLoginModal />
-
-      {/* Global Toast Notifications (Sonner) */}
+      {/* 4. Global Modals & Notifications */}
+      <GlobalModals />
       <Toaster position="bottom-right" richColors />
     </div>
   )

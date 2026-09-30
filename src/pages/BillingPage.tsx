@@ -1,13 +1,11 @@
 import React from 'react'
 import { useBillingForm } from '@/hooks/useBillingForm'
 import { ScaleReader } from '@/components/pos/ScaleReader'
-import { CustomerSelectModal } from '@/components/billing/CustomerSelectModal'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { PrintPreviewDialog } from '@/components/shared/PrintPreviewDialog'
 import { BillingTopControls } from '@/components/billing/BillingTopControls'
 import { ProductSpecCard } from '@/components/billing/ProductSpecCard'
 import { CustomerSummaryCard } from '@/components/billing/CustomerSummaryCard'
 import { InvoiceSettlementCard } from '@/components/billing/InvoiceSettlementCard'
+import { BillingModals } from '@/components/billing/BillingModals'
 
 export const BillingPage: React.FC = () => {
   const form = useBillingForm()
@@ -15,7 +13,6 @@ export const BillingPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-3 md:p-5">
       <div className="w-[98vw] max-w-[98vw] mx-auto space-y-4">
-        {/* Top Control Bar */}
         <BillingTopControls
           billType={form.billType}
           onBillTypeChange={form.setBillType}
@@ -28,9 +25,7 @@ export const BillingPage: React.FC = () => {
           }}
         />
 
-        {/* 2-Column POS Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Left Column: Scale & Specifications */}
           <div className="lg:col-span-7 space-y-4">
             <ScaleReader
               onCaptureWeight={form.handleScaleCapture}
@@ -61,7 +56,6 @@ export const BillingPage: React.FC = () => {
             />
           </div>
 
-          {/* Right Column: Customer & Invoice Breakdown */}
           <div className="lg:col-span-5 space-y-4">
             <CustomerSummaryCard
               selectedCustomer={form.selectedCustomer}
@@ -85,30 +79,7 @@ export const BillingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
-      <CustomerSelectModal
-        open={form.customerModalOpen}
-        onOpenChange={form.setCustomerModalOpen}
-        onSelectCustomer={form.handleSelectCustomer}
-        onNewCustomer={() => {
-          form.setCustomerModalOpen(false)
-          form.setCurrentPage('customers')
-        }}
-      />
-      <ConfirmDialog
-        open={form.confirmClearOpen}
-        onOpenChange={form.setConfirmClearOpen}
-        title="Clear Current Transaction?"
-        description="Are you sure you want to clear the weight, deductions, and payment details?"
-        onConfirm={form.doClearForm}
-        confirmText="Clear Form"
-        variant="destructive"
-      />
-      <PrintPreviewDialog
-        open={form.printPreviewOpen}
-        onOpenChange={form.setPrintPreviewOpen}
-        bill={form.lastSavedBill}
-      />
+      <BillingModals form={form} />
     </div>
   )
 }
