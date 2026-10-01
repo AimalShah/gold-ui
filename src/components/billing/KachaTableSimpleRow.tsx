@@ -1,13 +1,16 @@
 import React from 'react'
 import { KachaTableRowInput } from './KachaTableRowInput'
+import { cn } from '@/lib/utils'
 
 interface Props {
   label: string
-  subtitle: string
+  subtitle?: string
   mg: number
   onChangeMg: (mg: number) => void
   gramsPerTola: number
   highlightGrams?: boolean
+  rowBgClass?: string
+  readOnly?: boolean
 }
 
 export const KachaTableSimpleRow: React.FC<Props> = ({
@@ -17,12 +20,14 @@ export const KachaTableSimpleRow: React.FC<Props> = ({
   onChangeMg,
   gramsPerTola,
   highlightGrams,
+  rowBgClass,
+  readOnly = false,
 }) => {
   return (
-    <div className="grid grid-cols-12 items-center hover:bg-muted/15 transition-colors">
-      <div className="col-span-4 px-3 py-1.5">
-        <span className="font-semibold text-foreground text-lg uppercase tracking-wide block">{label}</span>
-        <span className="text-[10px] text-muted-foreground">{subtitle}</span>
+    <div className={cn('grid grid-cols-12 items-center border-b border-border/70', rowBgClass)}>
+      <div className="col-span-4 px-3 py-2 flex items-center justify-between">
+        <span className="font-bold text-foreground text-sm tracking-tight">{label}</span>
+        {subtitle && <span className="text-[10px] text-muted-foreground">{subtitle}</span>}
       </div>
       <div className="col-span-8 grid grid-cols-4 items-center">
         <KachaTableRowInput
@@ -30,6 +35,7 @@ export const KachaTableSimpleRow: React.FC<Props> = ({
           onChangeMg={onChangeMg}
           gramsPerTola={gramsPerTola}
           highlightGrams={highlightGrams}
+          readOnly={readOnly}
         />
       </div>
     </div>

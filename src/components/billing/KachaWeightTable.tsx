@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { formatTMR, DEFAULT_GRAMS_PER_TOLA } from '@/lib/gold-math'
-import { KachaTableRowInput } from './KachaTableRowInput'
+import { DEFAULT_GRAMS_PER_TOLA } from '@/lib/gold-math'
+import { KachaTableHeader } from './KachaTableHeader'
 import { KachaTableSimpleRow } from './KachaTableSimpleRow'
+import { KachaTraditionalRateRow } from './KachaTraditionalRateRow'
+import { KachaDeductionTotalRow } from './KachaDeductionTotalRow'
 
 interface Props {
-  weightMg: number
-  setWeightMg: (mg: number) => void
-  cutMg: number
-  setCutMg: (mg: number) => void
-  polishMg: number
-  setPolishMg: (mg: number) => void
+  weightMg: number; setWeightMg: (mg: number) => void
+  cutMg: number; setCutMg: (mg: number) => void
+  polishMg: number; setPolishMg: (mg: number) => void
   gramsPerTola?: number
 }
 
@@ -18,53 +17,81 @@ const HEADERS = ['KACHA', 'TOLA', 'MASHA', 'RATTI', 'GRAMS']
 export const KachaWeightTable: React.FC<Props> = ({
   weightMg, setWeightMg, cutMg, setCutMg, polishMg, setPolishMg, gramsPerTola = DEFAULT_GRAMS_PER_TOLA
 }) => {
-  const [cutPerTolaMg, setCutPerTolaMg] = useState(0)
-  const [polishPerTolaMg, setPolishPerTolaMg] = useState(122)
+  const [cutRateMg, setCutRateMg] = useState(0), [polishRateMg, setPolishRateMg] = useState(122)
+  const [nagCount, setNagCount] = useState(''), [polishNote, setPolishNote] = useState('')
 
   useEffect(() => {
-    if (cutPerTolaMg > 0) {
-      setCutMg(Math.round((weightMg / (gramsPerTola * 1000)) * cutPerTolaMg))
-    }
-  }, [weightMg, cutPerTolaMg, gramsPerTola, setCutMg])
+    if (cutRateMg > 0) setCutMg(Math.round((weightMg / (gramsPerTola * 1000)) * cutRateMg))
+  }, [weightMg, cutRateMg, gramsPerTola, setCutMg])
 
   useEffect(() => {
-    if (polishPerTolaMg > 0) {
-      setPolishMg(Math.round((weightMg / (gramsPerTola * 1000)) * polishPerTolaMg))
-    }
-  }, [weightMg, polishPerTolaMg, gramsPerTola, setPolishMg])
+    if (polishRateMg > 0) setPolishMg(Math.round((weightMg / (gramsPerTola * 1000)) * polishRateMg))
+  }, [weightMg, polishRateMg, gramsPerTola, setPolishMg])
 
   const netWeightMg = Math.max(0, weightMg - cutMg - polishMg)
 
   return (
-    <div className="rounded-lg border border-border/80 overflow-hidden bg-card shadow-2xs">
-      <div className="grid grid-cols-12 w-full items-center border-b border-border/80 bg-muted/30 text-[11px] font-semibold uppercase tracking-wider">
-        {HEADERS.map((h, i) => (
-          <div
-            key={h}
-            className={`text-xl ${i === 0 ? 'col-span-4 text-foreground font-bold px-3 text-left' : 'col-span-2 text-muted-foreground border-l border-border/60 px-2 text-center'} ${i === 4 ? 'text-primary font-bold text-xl' : ''} py-2`}
-          >
-            {h}
-          </div>
-        ))}
-      </div>
+    <div className="rounded-lg border-2 border-border/90 overflow-hidden bg-card shadow-sm">
+      <KachaTableHeader headers={HEADERS} />
 
-      <div className="divide-y divide-border/60">
-        <KachaTableSimpleRow label="WEIGHT" subtitle="Initial Gross Weight" mg={weightMg} onChangeMg={setWeightMg} gramsPerTola={gramsPerTola} highlightGrams />
-        <KachaTableSimpleRow label="CUT/TOLA" subtitle="Deduction rate per tola" mg={cutPerTolaMg} onChangeMg={setCutPerTolaMg} gramsPerTola={gramsPerTola} />
-        <KachaTableSimpleRow label="CUT" subtitle="Stone / Kat deduction (Total)" mg={cutMg} onChangeMg={setCutMg} gramsPerTola={gramsPerTola} />
-        <KachaTableSimpleRow label="POLISH PER/TOLA" subtitle="Polish rate per tola" mg={polishPerTolaMg} onChangeMg={setPolishPerTolaMg} gramsPerTola={gramsPerTola} />
-        <KachaTableSimpleRow label="POLISH" subtitle="Wastage / Polish deduction (Total)" mg={polishMg} onChangeMg={setPolishMg} gramsPerTola={gramsPerTola} />
+      <div className="divide-y divide-border/70">
+        <KachaTableSimpleRow
+          label="WEIGHT"
+          mg={weightMg}
+          onChangeMg={setWeightMg}
+          gramsPerTola={gramsPerTola}
+          highlightGrams
+          rowBgClass="bg-emerald-500/10 dark:bg-emerald-950/20"
+        />
 
-        {/* ROW 6: LAST TOTAL WEIGHT */}
-        <div className="grid grid-cols-12 items-center bg-primary/10 border-t border-primary/25 font-bold">
-          <div className="col-span-4 px-3 py-2">
-            <span className="font-bold text-primary text-xl uppercase tracking-wider block">TOTAL WEIGHT</span>
-            <span className="text-[10px] text-muted-foreground font-mono">{formatTMR(netWeightMg, gramsPerTola)}</span>
-          </div>
-          <div className="col-span-8 grid grid-cols-4 items-center">
-            <KachaTableRowInput mg={netWeightMg} onChangeMg={() => {}} gramsPerTola={gramsPerTola} readOnly />
-          </div>
-        </div>
+        <KachaTraditionalRateRow
+          label="CUT / TOLA"
+          rateMg={cutRateMg}
+          onChangeRateMg={setCutRateMg}
+          gramsPerTola={gramsPerTola}
+          rowBgClass="bg-sky-500/10 dark:bg-sky-950/20"
+        />
+
+        <KachaDeductionTotalRow
+          label="CUT"
+          subInputLabel="NAG"
+          subInputValue={nagCount}
+          onSubInputChange={setNagCount}
+          mg={cutMg}
+          onChangeMg={setCutMg}
+          gramsPerTola={gramsPerTola}
+          rowBgClass="bg-sky-500/10 dark:bg-sky-950/20"
+        />
+
+        <KachaTraditionalRateRow
+          label="POLISH /"
+          badge="TOLA"
+          rateMg={polishRateMg}
+          onChangeRateMg={setPolishRateMg}
+          gramsPerTola={gramsPerTola}
+          rowBgClass="bg-amber-500/10 dark:bg-amber-950/20"
+        />
+
+        <KachaDeductionTotalRow
+          label="POLISH"
+          subInputValue={polishNote}
+          onSubInputChange={setPolishNote}
+          subInputBgClass="bg-amber-100/80 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800"
+          mg={polishMg}
+          onChangeMg={setPolishMg}
+          gramsPerTola={gramsPerTola}
+          rowBgClass="bg-amber-500/10 dark:bg-amber-950/20"
+        />
+
+        <KachaTableSimpleRow
+          label="TOTAL WT"
+          mg={netWeightMg}
+          onChangeMg={() => {}}
+          gramsPerTola={gramsPerTola}
+          highlightGrams
+          readOnly
+          rowBgClass="bg-primary/20 dark:bg-primary/25 border-t-2 border-primary/50 font-black text-primary"
+        />
       </div>
     </div>
   )
