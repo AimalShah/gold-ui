@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface Props {
   headers: string[]
@@ -13,14 +14,20 @@ export const KachaTableHeader: React.FC<Props> = ({ headers }) => {
         </span>
         <span className="text-foreground font-black text-xl">{headers[0]}</span>
       </div>
-      {headers.slice(1).map((h, i) => (
-        <div
-          key={h}
-          className={`col-span-2 py-2.5 text-center text-foreground font-black text-xl border-l-2 border-border ${i === 3 ? 'text-primary' : ''}`}
-        >
-          {h}
-        </div>
-      ))}
+      {headers.slice(1).map((h) => {
+        const isGrams = h === 'GRAMS'
+        return (
+          <div
+            key={h}
+            className={cn(
+              'col-span-2 py-2.5 text-center font-black text-xl border-l-2 border-border',
+              isGrams ? 'bg-emerald-600 text-white' : 'text-foreground'
+            )}
+          >
+            {h}
+          </div>
+        )
+      })}
     </div>
   )
 }

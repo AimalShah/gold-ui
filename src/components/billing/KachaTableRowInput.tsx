@@ -21,27 +21,20 @@ export const KachaTableRowInput: React.FC<Props> = ({
     if (!active) {
       if (mg === 0) { setT(''); setM(''); setR(''); setG(''); return }
       const p = toParts(mg, gramsPerTola)
-      setT(p.tola ? p.tola.toString() : '')
-      setM(p.masha ? p.masha.toString() : '')
-      setR(p.ratti ? p.ratti.toString() : '')
-      setG(p.grams ? p.grams.toFixed(4) : '')
+      setT(p.tola ? p.tola.toString() : ''); setM(p.masha ? p.masha.toString() : '')
+      setR(p.ratti ? p.ratti.toString() : ''); setG(p.grams ? p.grams.toFixed(4) : '')
     }
   }, [mg, gramsPerTola, active])
 
   const onTmr = (t: string, m: string, r: string) => {
     const cMg = fromParts({ tola: parseFloat(t) || 0, masha: parseFloat(m) || 0, ratti: parseFloat(r) || 0 }, gramsPerTola)
-    onChangeMg(cMg)
-    setG(cMg !== 0 ? (cMg / 1000).toFixed(4) : '')
+    onChangeMg(cMg); setG(cMg !== 0 ? (cMg / 1000).toFixed(4) : '')
   }
 
   const onGm = (val: string) => {
-    setG(val)
-    const cMg = Math.round((parseFloat(val) || 0) * 1000)
-    onChangeMg(cMg)
+    setG(val); const cMg = Math.round((parseFloat(val) || 0) * 1000); onChangeMg(cMg)
     const p = toParts(cMg, gramsPerTola)
-    setT(p.tola ? p.tola.toString() : '')
-    setM(p.masha ? p.masha.toString() : '')
-    setR(p.ratti ? p.ratti.toString() : '')
+    setT(p.tola ? p.tola.toString() : ''); setM(p.masha ? p.masha.toString() : ''); setR(p.ratti ? p.ratti.toString() : '')
   }
 
   if (readOnly) {
@@ -50,7 +43,11 @@ export const KachaTableRowInput: React.FC<Props> = ({
         <div className="text-center font-mono font-black text-xl py-2">{parts.tola}</div>
         <div className="text-center font-mono font-black text-xl py-2 border-l-2 border-border">{parts.masha}</div>
         <div className="text-center font-mono font-black text-xl py-2 border-l-2 border-border">{parts.ratti.toFixed(2)}</div>
-        <div className="text-center font-mono font-black text-xl py-2 text-primary border-l-2 border-border">{formatGrams(mg, 4)}g</div>
+        <div className="p-1.5 text-center border-l-2 border-border">
+          <div className={cn('w-full text-center font-mono text-xl font-bold rounded px-1 py-1 flex items-center justify-center',
+            highlightGrams ? 'bg-emerald-600 text-white border-2 border-emerald-600' : 'text-foreground'
+          )}>{formatGrams(mg, 4)}g</div>
+        </div>
       </>
     )
   }
@@ -87,8 +84,10 @@ export const KachaTableRowInput: React.FC<Props> = ({
           onBlur={() => setActive(null)}
           onChange={(e) => onGm(e.target.value)}
           className={cn(
-            'w-full text-center font-mono text-xl font-bold bg-background border-2 rounded px-1 py-1 focus:outline-none focus:ring-2 focus:ring-primary transition-colors',
-            highlightGrams ? 'text-primary border-primary' : 'text-foreground border-border'
+            'w-full text-center font-mono text-xl font-bold border-2 rounded px-1 py-1 focus:outline-none transition-colors',
+            highlightGrams
+              ? 'bg-emerald-600 text-white placeholder:text-emerald-100/70 border-emerald-600 focus:ring-2 focus:ring-emerald-400'
+              : 'bg-background text-foreground border-border focus:ring-2 focus:ring-primary'
           )}
         />
       </div>
