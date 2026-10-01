@@ -20,20 +20,20 @@ export const KachaDeductionTotalRow: React.FC<Props> = ({
   subInputValue = '',
   onSubInputChange,
   rowBgClass,
-  subInputBgClass = 'bg-sky-100/80 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800',
+  subInputBgClass = 'bg-sky-200 dark:bg-sky-900 border-sky-400 dark:border-sky-700',
   mg,
   onChangeMg,
   gramsPerTola,
 }) => {
   return (
-    <div className={cn('grid grid-cols-12 items-center border-b border-border/70', rowBgClass)}>
+    <div className={cn('grid grid-cols-12 items-center border-b-2 border-border/70', rowBgClass)}>
       {/* Col 1: Label + Nag/Stone count input box */}
-      <div className="col-span-4 px-3 py-1.5 flex items-center justify-between gap-2">
-        <span className="font-bold text-foreground text-sm tracking-tight">{label}</span>
+      <div className="col-span-4 px-3 py-2 flex items-center justify-between gap-2">
+        <span className="font-black text-foreground text-xl tracking-tight">{label}</span>
         {onSubInputChange && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             {subInputLabel && (
-              <span className="text-[10px] font-semibold text-muted-foreground">{subInputLabel}</span>
+              <span className="text-xs font-bold text-muted-foreground uppercase">{subInputLabel}</span>
             )}
             <input
               type="text"
@@ -41,7 +41,7 @@ export const KachaDeductionTotalRow: React.FC<Props> = ({
               value={subInputValue}
               onChange={(e) => onSubInputChange(e.target.value)}
               className={cn(
-                'w-12 h-8 text-center text-xs font-mono font-bold border rounded focus:outline-none focus:ring-1 focus:ring-primary',
+                'w-14 h-10 text-center text-xl font-mono font-bold border-2 rounded focus:outline-none focus:ring-2 focus:ring-primary',
                 subInputBgClass
               )}
             />

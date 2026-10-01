@@ -45,30 +45,30 @@ export const KachaThreeRateInput: React.FC<Props> = ({
   }
 
   return (
-    <div className="flex items-center justify-center gap-1 px-1 py-0.5">
+    <div className="flex items-center justify-center gap-1.5 px-1 py-0.5">
       <input
         type="number"
-        placeholder="M"
+        placeholder="0"
         value={masha}
         title="Masha per tola"
         onChange={(e) => { setMasha(e.target.value); update(e.target.value, ratti, chawal) }}
-        className="w-8 h-8 text-center text-xs font-mono font-bold bg-background border border-border/80 rounded focus:bg-sky-100 dark:focus:bg-sky-950 focus:border-sky-500 focus:outline-none"
+        className="w-10 h-10 text-center text-xl font-mono font-bold bg-background border-2 border-border/90 rounded focus:bg-sky-100 dark:focus:bg-sky-950 focus:border-sky-500 focus:outline-none"
       />
       <input
         type="number"
-        placeholder="R"
+        placeholder="0"
         value={ratti}
         title="Ratti per tola"
         onChange={(e) => { setRatti(e.target.value); update(masha, e.target.value, chawal) }}
-        className="w-8 h-8 text-center text-xs font-mono font-bold bg-background border border-border/80 rounded focus:bg-sky-100 dark:focus:bg-sky-950 focus:border-sky-500 focus:outline-none"
+        className="w-10 h-10 text-center text-xl font-mono font-bold bg-background border-2 border-border/90 rounded focus:bg-sky-100 dark:focus:bg-sky-950 focus:border-sky-500 focus:outline-none"
       />
       <input
         type="number"
-        placeholder="C"
+        placeholder="0"
         value={chawal}
         title="Chawal (points) per tola"
         onChange={(e) => { setChawal(e.target.value); update(masha, ratti, e.target.value) }}
-        className="w-8 h-8 text-center text-xs font-mono font-bold bg-background border border-border/80 rounded focus:bg-sky-100 dark:focus:bg-sky-950 focus:border-sky-500 focus:outline-none"
+        className="w-10 h-10 text-center text-xl font-mono font-bold bg-background border-2 border-border/90 rounded focus:bg-sky-100 dark:focus:bg-sky-950 focus:border-sky-500 focus:outline-none"
       />
     </div>
   )

@@ -22,67 +22,66 @@ export const KachaWeightTable: React.FC<Props> = ({
 
   useEffect(() => {
     if (cutRateMg > 0) setCutMg(Math.round((weightMg / (gramsPerTola * 1000)) * cutRateMg))
-  }, [weightMg, cutRateMg, gramsPerTola, setCutMg])
-
-  useEffect(() => {
     if (polishRateMg > 0) setPolishMg(Math.round((weightMg / (gramsPerTola * 1000)) * polishRateMg))
-  }, [weightMg, polishRateMg, gramsPerTola, setPolishMg])
+  }, [weightMg, cutRateMg, polishRateMg, gramsPerTola, setCutMg, setPolishMg])
 
   const netWeightMg = Math.max(0, weightMg - cutMg - polishMg)
 
   return (
-    <div className="rounded-lg border-2 border-border/90 overflow-hidden bg-card shadow-sm">
+    <div className="rounded-lg border-2 border-slate-500 dark:border-slate-700 overflow-hidden bg-card shadow-sm">
       <KachaTableHeader headers={HEADERS} />
 
-      <div className="divide-y divide-border/70">
+      <div className="divide-y-2 divide-slate-300 dark:divide-slate-800">
+        {/* ROW 1: WEIGHT (Solid Mint Green) */}
         <KachaTableSimpleRow
           label="WEIGHT"
           mg={weightMg}
           onChangeMg={setWeightMg}
           gramsPerTola={gramsPerTola}
           highlightGrams
-          rowBgClass="bg-emerald-500/10 dark:bg-emerald-950/20"
+          rowBgClass="bg-[#bbf7d0] dark:bg-[#064e3b] text-slate-900 dark:text-emerald-50"
         />
 
+        {/* ROW 2: CUT / TOLA (Solid Sky Blue) */}
         <KachaTraditionalRateRow
           label="CUT / TOLA"
           rateMg={cutRateMg}
           onChangeRateMg={setCutRateMg}
           gramsPerTola={gramsPerTola}
-          rowBgClass="bg-sky-500/10 dark:bg-sky-950/20"
+          rowBgClass="bg-[#bae6fd] dark:bg-[#0c4a6e] text-slate-900 dark:text-sky-50"
         />
 
+        {/* ROW 3: CUT (Solid Sky Blue) */}
         <KachaDeductionTotalRow
-          label="CUT"
-          subInputLabel="NAG"
-          subInputValue={nagCount}
-          onSubInputChange={setNagCount}
-          mg={cutMg}
-          onChangeMg={setCutMg}
-          gramsPerTola={gramsPerTola}
-          rowBgClass="bg-sky-500/10 dark:bg-sky-950/20"
+          label="CUT" subInputLabel="NAG" subInputValue={nagCount} onSubInputChange={setNagCount}
+          subInputBgClass="bg-white dark:bg-slate-900 border-sky-400 dark:border-sky-600 text-slate-900 dark:text-sky-100"
+          mg={cutMg} onChangeMg={setCutMg} gramsPerTola={gramsPerTola}
+          rowBgClass="bg-[#bae6fd] dark:bg-[#0c4a6e] text-slate-900 dark:text-sky-50"
         />
 
+        {/* ROW 4: POLISH / TOLA (Solid Peach / Amber) */}
         <KachaTraditionalRateRow
           label="POLISH /"
           badge="TOLA"
           rateMg={polishRateMg}
           onChangeRateMg={setPolishRateMg}
           gramsPerTola={gramsPerTola}
-          rowBgClass="bg-amber-500/10 dark:bg-amber-950/20"
+          rowBgClass="bg-[#fde68a] dark:bg-[#78350f] text-slate-900 dark:text-amber-50"
         />
 
+        {/* ROW 5: POLISH (Solid Peach / Amber) */}
         <KachaDeductionTotalRow
           label="POLISH"
           subInputValue={polishNote}
           onSubInputChange={setPolishNote}
-          subInputBgClass="bg-amber-100/80 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800"
+          subInputBgClass="bg-white dark:bg-slate-900 border-amber-400 dark:border-amber-600 text-slate-900 dark:text-amber-100"
           mg={polishMg}
           onChangeMg={setPolishMg}
           gramsPerTola={gramsPerTola}
-          rowBgClass="bg-amber-500/10 dark:bg-amber-950/20"
+          rowBgClass="bg-[#fde68a] dark:bg-[#78350f] text-slate-900 dark:text-amber-50"
         />
 
+        {/* ROW 6: TOTAL WT (Solid Master Total) */}
         <KachaTableSimpleRow
           label="TOTAL WT"
           mg={netWeightMg}
@@ -90,7 +89,7 @@ export const KachaWeightTable: React.FC<Props> = ({
           gramsPerTola={gramsPerTola}
           highlightGrams
           readOnly
-          rowBgClass="bg-primary/20 dark:bg-primary/25 border-t-2 border-primary/50 font-black text-primary"
+          rowBgClass="bg-[#e2e8f0] dark:bg-[#0f172a] text-slate-950 dark:text-amber-300 border-t-4 border-slate-600 dark:border-amber-500 font-black"
         />
       </div>
     </div>

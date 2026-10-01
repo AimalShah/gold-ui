@@ -24,10 +24,10 @@ export const KachaTableSimpleRow: React.FC<Props> = ({
   readOnly = false,
 }) => {
   return (
-    <div className={cn('grid grid-cols-12 items-center border-b border-border/70', rowBgClass)}>
+    <div className={cn('grid grid-cols-12 items-center border-b-2 border-border/70', rowBgClass)}>
       <div className="col-span-4 px-3 py-2 flex items-center justify-between">
-        <span className="font-bold text-foreground text-sm tracking-tight">{label}</span>
-        {subtitle && <span className="text-[10px] text-muted-foreground">{subtitle}</span>}
+        <span className="font-black text-foreground text-xl tracking-tight">{label}</span>
+        {subtitle && <span className="text-xs text-muted-foreground font-semibold">{subtitle}</span>}
       </div>
       <div className="col-span-8 grid grid-cols-4 items-center">
         <KachaTableRowInput
