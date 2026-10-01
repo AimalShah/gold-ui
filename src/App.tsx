@@ -13,7 +13,7 @@ const MainAppContent: React.FC = () => {
   useGlobalShortcuts()
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground font-sans select-none">
+    <div className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans select-none">
       {/* 1. Global Header */}
       <TopBar />
 

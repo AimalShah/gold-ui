@@ -12,7 +12,7 @@ export const BillingPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background p-3 md:p-5">
-      <div className="w-[98vw] max-w-[98vw] mx-auto space-y-4">
+      <div className="w-full max-w-full mx-auto space-y-4">
         <BillingTopControls
           billType={form.billType}
           onBillTypeChange={form.setBillType}

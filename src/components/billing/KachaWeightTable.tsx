@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { formatTMR, DEFAULT_GRAMS_PER_TOLA } from '@/lib/gold-math'
 import { KachaTableRowInput } from './KachaTableRowInput'
 import { KachaTableSimpleRow } from './KachaTableSimpleRow'
-import { KachaTableDeductionRow, DeductionUnit } from './KachaTableDeductionRow'
 
 interface Props {
   weightMg: number
@@ -20,21 +19,19 @@ export const KachaWeightTable: React.FC<Props> = ({
   weightMg, setWeightMg, cutMg, setCutMg, polishMg, setPolishMg, gramsPerTola = DEFAULT_GRAMS_PER_TOLA
 }) => {
   const [cutPerTolaMg, setCutPerTolaMg] = useState(0)
-  const [cutUnit, setCutUnit] = useState<DeductionUnit>('auto')
   const [polishPerTolaMg, setPolishPerTolaMg] = useState(122)
-  const [polishUnit, setPolishUnit] = useState<DeductionUnit>('auto')
 
   useEffect(() => {
-    if (cutUnit === 'auto') {
+    if (cutPerTolaMg > 0) {
       setCutMg(Math.round((weightMg / (gramsPerTola * 1000)) * cutPerTolaMg))
     }
-  }, [weightMg, cutPerTolaMg, cutUnit, gramsPerTola, setCutMg])
+  }, [weightMg, cutPerTolaMg, gramsPerTola, setCutMg])
 
   useEffect(() => {
-    if (polishUnit === 'auto') {
+    if (polishPerTolaMg > 0) {
       setPolishMg(Math.round((weightMg / (gramsPerTola * 1000)) * polishPerTolaMg))
     }
-  }, [weightMg, polishPerTolaMg, polishUnit, gramsPerTola, setPolishMg])
+  }, [weightMg, polishPerTolaMg, gramsPerTola, setPolishMg])
 
   const netWeightMg = Math.max(0, weightMg - cutMg - polishMg)
 
@@ -44,7 +41,7 @@ export const KachaWeightTable: React.FC<Props> = ({
         {HEADERS.map((h, i) => (
           <div
             key={h}
-            className={`text-xl ${i === 0 ? 'col-span-4 text-foreground font-bold px-3 text-left ' : 'col-span-2 text-muted-foreground border-l border-border/60 px-2 text-center'} ${i === 4 ? 'text-primary font-bold text-xl' : ''} py-2`}
+            className={`text-xl ${i === 0 ? 'col-span-4 text-foreground font-bold px-3 text-left' : 'col-span-2 text-muted-foreground border-l border-border/60 px-2 text-center'} ${i === 4 ? 'text-primary font-bold text-xl' : ''} py-2`}
           >
             {h}
           </div>
@@ -54,9 +51,9 @@ export const KachaWeightTable: React.FC<Props> = ({
       <div className="divide-y divide-border/60">
         <KachaTableSimpleRow label="WEIGHT" subtitle="Initial Gross Weight" mg={weightMg} onChangeMg={setWeightMg} gramsPerTola={gramsPerTola} highlightGrams />
         <KachaTableSimpleRow label="CUT/TOLA" subtitle="Deduction rate per tola" mg={cutPerTolaMg} onChangeMg={setCutPerTolaMg} gramsPerTola={gramsPerTola} />
-        <KachaTableDeductionRow label="CUT" subtitle="Stone / Kat deduction" unit={cutUnit} onUnitChange={setCutUnit} mg={cutMg} onChangeMg={setCutMg} gramsPerTola={gramsPerTola} />
+        <KachaTableSimpleRow label="CUT" subtitle="Stone / Kat deduction (Total)" mg={cutMg} onChangeMg={setCutMg} gramsPerTola={gramsPerTola} />
         <KachaTableSimpleRow label="POLISH PER/TOLA" subtitle="Polish rate per tola" mg={polishPerTolaMg} onChangeMg={setPolishPerTolaMg} gramsPerTola={gramsPerTola} />
-        <KachaTableDeductionRow label="POLISH" subtitle="Wastage / Polish deduction" unit={polishUnit} onUnitChange={setPolishUnit} mg={polishMg} onChangeMg={setPolishMg} gramsPerTola={gramsPerTola} />
+        <KachaTableSimpleRow label="POLISH" subtitle="Wastage / Polish deduction (Total)" mg={polishMg} onChangeMg={setPolishMg} gramsPerTola={gramsPerTola} />
 
         {/* ROW 6: LAST TOTAL WEIGHT */}
         <div className="grid grid-cols-12 items-center bg-primary/10 border-t border-primary/25 font-bold">
