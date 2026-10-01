@@ -16,6 +16,11 @@ export const BillingPage: React.FC = () => {
         <BillingTopControls
           billType={form.billType}
           onBillTypeChange={form.setBillType}
+          unitMode={form.unitMode}
+          onUnitModeChange={form.setUnitMode}
+          onSave={form.handleSaveBill}
+          onCredit={form.handleCreditBill}
+          onPrint={form.handlePrintCurrent}
           onReset={() => {
             if (form.weightMg > 0 || form.amountReceivedPkr > 0) {
               form.setConfirmClearOpen(true)

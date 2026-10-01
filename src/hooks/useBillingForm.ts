@@ -16,6 +16,7 @@ export function useBillingForm() {
     addBill,
     currentUser,
     unitMode,
+    setUnitMode,
     setCurrentPage,
   } = useApp()
 
@@ -130,6 +131,59 @@ export function useBillingForm() {
     toast.success(`Invoice #${saved.billNo} saved successfully.`)
   }
 
+  const handleCreditBill = () => {
+    if (weightMg <= 0) {
+      toast.error('Please enter or capture a valid weight before saving.')
+      return
+    }
+
+    if (!selectedCustomer) {
+      toast.info('Please select a customer account to record credit transaction.')
+      setCustomerModalOpen(true)
+      return
+    }
+
+    const saved = addBill({
+      date: new Date().toISOString().split('T')[0],
+      customerId: selectedCustomer.id,
+      customerName: selectedCustomer.name,
+      type: billType,
+      metal: 'gold',
+      items: [
+        {
+          id: `item-${Date.now()}`,
+          description: productName,
+          weightMg,
+          cutPerTolaMg: stoneDeductionMg,
+          cutTotalMg: stoneDeductionMg,
+          polishPerTolaMg: polishDeductionMg,
+          polishTotalMg: polishDeductionMg,
+          totalWeightMg: netWeightMg,
+          goldRatePkr,
+          chargesPkr,
+          carat,
+          totalPricePkr: totalAmountPkr,
+        },
+      ],
+      totalWeightMg: weightMg,
+      cutTotalMg: stoneDeductionMg,
+      polishTotalMg: polishDeductionMg,
+      netWeightMg,
+      goldRatePkr,
+      carat,
+      chargesMode,
+      chargesPkr,
+      totalPricePkr: totalAmountPkr,
+      wasoolPkr: 0,
+      balancePkr: totalAmountPkr,
+      zakatPkr: Math.round(totalAmountPkr * 0.025),
+      user: currentUser.name,
+    })
+
+    setLastSavedBill(saved)
+    toast.success(`Credit Invoice #${saved.billNo} saved for ${selectedCustomer.name}.`)
+  }
+
   const handlePrintCurrent = () => {
     const currentBillRepresentation: Bill = {
       id: 'current-preview',
@@ -177,6 +231,7 @@ export function useBillingForm() {
     gramsPerTola,
     defaultRate,
     unitMode,
+    setUnitMode,
     setCurrentPage,
     // State
     selectedCustomer,
@@ -221,6 +276,7 @@ export function useBillingForm() {
     handleScaleCapture,
     doClearForm,
     handleSaveBill,
+    handleCreditBill,
     handlePrintCurrent,
   }
 }
