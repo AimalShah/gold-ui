@@ -20,13 +20,13 @@ export const KachaDeductionTotalRow: React.FC<Props> = ({
   subInputValue = '',
   onSubInputChange,
   rowBgClass,
-  subInputBgClass = 'bg-sky-200 dark:bg-sky-900 border-sky-400 dark:border-sky-700',
+  subInputBgClass = 'bg-background border-border text-foreground',
   mg,
   onChangeMg,
   gramsPerTola,
 }) => {
   return (
-    <div className={cn('grid grid-cols-12 items-center border-b-2 border-border/70', rowBgClass)}>
+    <div className={cn('grid grid-cols-12 items-center border-b-2 border-border', rowBgClass)}>
       {/* Col 1: Label + Nag/Stone count input box */}
       <div className="col-span-4 px-3 py-2 flex items-center justify-between gap-2">
         <span className="font-black text-foreground text-xl tracking-tight">{label}</span>

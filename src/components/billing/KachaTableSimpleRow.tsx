@@ -24,7 +24,7 @@ export const KachaTableSimpleRow: React.FC<Props> = ({
   readOnly = false,
 }) => {
   return (
-    <div className={cn('grid grid-cols-12 items-center border-b-2 border-border/70', rowBgClass)}>
+    <div className={cn('grid grid-cols-12 items-center border-b-2 border-border', rowBgClass)}>
       <div className="col-span-4 px-3 py-2 flex items-center justify-between">
         <span className="font-black text-foreground text-xl tracking-tight">{label}</span>
         {subtitle && <span className="text-xs text-muted-foreground font-semibold">{subtitle}</span>}
