@@ -26,11 +26,7 @@ export const BillingPage: React.FC = () => {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          <div className="lg:col-span-7 space-y-4">
-            <ScaleReader
-              onCaptureWeight={form.handleScaleCapture}
-              currentWeighedWeightMg={form.weightMg}
-            />
+          <div className="lg:col-span-12 space-y-4">
 
             <ProductSpecCard
               productName={form.productName}
@@ -55,7 +51,7 @@ export const BillingPage: React.FC = () => {
               setChargesPkr={form.setChargesPkr}
             />
           </div>
-
+{/*
           <div className="lg:col-span-5 space-y-4">
             <CustomerSummaryCard
               selectedCustomer={form.selectedCustomer}
@@ -75,7 +71,7 @@ export const BillingPage: React.FC = () => {
               onSave={form.handleSaveBill}
               onPrint={form.handlePrintCurrent}
             />
-          </div>
+          </div>*/}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,116 +6,136 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 240 10% 3.9%;
+    /* Luxury Gold & Warm Obsidian Palette */
+    --background: 40 20% 98.5%;
+    --foreground: 24 10% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 24 10% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 240 4.8% 93%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 24 10% 12%;
+    
+    /* Authentic Warm Aurum Gold */
+    --primary: 38 72% 43%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 35 15% 94%;
+    --secondary-foreground: 24 10% 18%;
+    --muted: 35 14% 94.5%;
+    --muted-foreground: 25 8% 46%;
+    --accent: 38 40% 93%;
+    --accent-foreground: 38 80% 30%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --print-border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 142.1 76.2% 36.3%;
+    
+    --border: 35 12% 89%;
+    --print-border: 35 12% 89%;
+    --input: 35 12% 88%;
+    --ring: 38 72% 43%;
     --radius: 0.5rem;
+    
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 142.1 76.2% 36.3%;
+    --sidebar-foreground: 24 8% 28%;
+    --sidebar-primary: 38 72% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 38 32% 94%;
+    --sidebar-accent-foreground: 38 75% 28%;
+    --sidebar-border: 35 12% 90%;
+    --sidebar-ring: 38 72% 43%;
 
     /* POS Tints for Gold Grid */
-    --tint-weight: 210 20% 98%;
-    --tint-weight-border: 240 5.9% 90%;
+    --tint-weight: 35 20% 98%;
+    --tint-weight-border: 35 12% 90%;
     --tint-cut: 0 0% 100%;
-    --tint-cut-border: 240 5.9% 90%;
-    --tint-polish: 210 20% 98%;
-    --tint-polish-border: 240 5.9% 90%;
-    --tint-total-wt: 142 45% 95%;
-    --tint-total-wt-border: 142 60% 75%;
-    --tint-rate: 210 20% 98%;
-    --tint-rate-border: 240 5.9% 90%;
-    --tint-charges: 210 20% 98%;
-    --tint-charges-border: 240 5.9% 90%;
-    --tint-wasool: 142 45% 95%;
-    --tint-wasool-border: 142 50% 75%;
+    --tint-cut-border: 35 12% 90%;
+    --tint-polish: 35 20% 98%;
+    --tint-polish-border: 35 12% 90%;
+    --tint-total-wt: 38 45% 95%;
+    --tint-total-wt-border: 38 50% 76%;
+    --tint-rate: 35 20% 98%;
+    --tint-rate-border: 35 12% 90%;
+    --tint-charges: 35 20% 98%;
+    --tint-charges-border: 35 12% 90%;
+    --tint-wasool: 145 28% 95%;
+    --tint-wasool-border: 145 35% 75%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 5.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 5.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 151 78% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 12%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 5% 14%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 72% 51%;
+    /* Deep Obsidian & Luminous Gold */
+    --background: 24 8% 7.5%;
+    --foreground: 35 18% 94%;
+    --card: 24 8% 10%;
+    --card-foreground: 35 18% 94%;
+    --popover: 24 8% 10%;
+    --popover-foreground: 35 18% 94%;
+    
+    --primary: 40 85% 50%;
+    --primary-foreground: 24 10% 8%;
+    
+    --secondary: 24 7% 15%;
+    --secondary-foreground: 35 18% 94%;
+    --muted: 24 7% 14%;
+    --muted-foreground: 35 10% 62%;
+    --accent: 38 25% 18%;
+    --accent-foreground: 40 85% 55%;
+    --destructive: 0 65% 52%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 15%;
-    --print-border: 240 5.9% 90%;
-    --input: 240 5% 16%;
-    --ring: 151 78% 42%;
-    --sidebar-background: 240 10% 4.5%;
-    --sidebar-foreground: 240 5% 85%;
-    --sidebar-primary: 151 78% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5% 13%;
-    --sidebar-ring: 151 78% 42%;
+    
+    --border: 24 7% 18%;
+    --print-border: 24 7% 18%;
+    --input: 24 7% 20%;
+    --ring: 40 85% 50%;
+    
+    --sidebar-background: 24 9% 8.5%;
+    --sidebar-foreground: 35 15% 82%;
+    --sidebar-primary: 40 85% 50%;
+    --sidebar-primary-foreground: 24 10% 8%;
+    --sidebar-accent: 38 25% 15%;
+    --sidebar-accent-foreground: 40 85% 55%;
+    --sidebar-border: 24 7% 16%;
+    --sidebar-ring: 40 85% 50%;
 
-    --tint-weight: 240 8% 8%;
-    --tint-weight-border: 240 5% 18%;
-    --tint-cut: 240 10% 6%;
-    --tint-cut-border: 240 5% 18%;
-    --tint-polish: 240 8% 8%;
-    --tint-polish-border: 240 5% 18%;
-    --tint-total-wt: 151 40% 12%;
-    --tint-total-wt-border: 151 60% 28%;
-    --tint-rate: 240 10% 6%;
-    --tint-rate-border: 240 5% 18%;
-    --tint-charges: 240 10% 6%;
-    --tint-charges-border: 240 5% 18%;
-    --tint-wasool: 151 35% 12%;
-    --tint-wasool-border: 151 55% 28%;
+    --tint-weight: 24 7% 11%;
+    --tint-weight-border: 24 7% 18%;
+    --tint-cut: 24 7% 9%;
+    --tint-cut-border: 24 7% 18%;
+    --tint-polish: 24 7% 11%;
+    --tint-polish-border: 24 7% 18%;
+    --tint-total-wt: 38 35% 14%;
+    --tint-total-wt-border: 38 50% 32%;
+    --tint-rate: 24 7% 9%;
+    --tint-rate-border: 24 7% 18%;
+    --tint-charges: 24 7% 9%;
+    --tint-charges-border: 24 7% 18%;
+    --tint-wasool: 145 25% 14%;
+    --tint-wasool-border: 145 35% 28%;
   }
 }
 
 @layer base {
   * {
-    font-family: "Poppins", sans-serif;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Poppins", sans-serif;
-    font-size: 14px;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13.5px;
     line-height: 1.5;
+    letter-spacing: -0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Poppins", sans-serif;
-    letter-spacing: -0.01em;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono,
+  input[type="number"],
+  .tabular-nums {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-feature-settings: "tnum" on, "zero" on;
+    font-variant-numeric: tabular-nums lining-nums;
   }
 
   input[type="number"] {
@@ -129,10 +149,6 @@
     -webkit-appearance: none;
     margin: 0;
   }
-}
-
-.tabular-nums {
-  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Row tint utility classes */

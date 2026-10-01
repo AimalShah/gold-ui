@@ -24,15 +24,15 @@ export const KachaTableDeductionRow: React.FC<Props> = ({
 }) => {
   return (
     <div className="grid grid-cols-12 items-center bg-muted/10 hover:bg-muted/20 transition-colors">
-      <div className="col-span-4 px-3 py-2 flex items-center justify-between gap-1.5">
+      <div className="col-span-4 px-3 py-1.5 flex items-center justify-between gap-1.5">
         <div>
-          <span className="font-bold text-foreground text-xs uppercase tracking-wide block">{label}</span>
+          <span className="font-semibold text-foreground text-xs uppercase tracking-wide block">{label}</span>
           <span className="text-[10px] text-muted-foreground">{subtitle}</span>
         </div>
         <select
           value={unit}
           onChange={(e) => onUnitChange(e.target.value as DeductionUnit)}
-          className="text-[11px] font-semibold bg-background border border-border rounded px-1.5 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+          className="text-[10px] font-medium bg-background border border-border/70 rounded-md px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer"
         >
           <option value="auto">Auto (/Tola)</option>
           <option value="grams">Grams (g)</option>

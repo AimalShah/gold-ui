@@ -68,8 +68,8 @@ export default {
       },
       fontFamily: {
         sans: ["'Plus Jakarta Sans'", "system-ui", "-apple-system", "sans-serif"],
-        heading: ["'Outfit'", "'Plus Jakarta Sans'", "sans-serif"],
-        mono: ["'Plus Jakarta Sans'", "system-ui", "-apple-system", "sans-serif"],
+        heading: ["'Plus Jakarta Sans'", "sans-serif"],
+        mono: ["'JetBrains Mono'", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       keyframes: {
         "accordion-down": {

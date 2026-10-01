@@ -47,10 +47,10 @@ export const KachaTableRowInput: React.FC<Props> = ({
   if (readOnly) {
     return (
       <>
-        <div className="text-center font-mono font-bold text-sm px-2 py-1.5">{parts.tola}</div>
-        <div className="text-center font-mono font-bold text-sm px-2 py-1.5 border-l border-border">{parts.masha}</div>
-        <div className="text-center font-mono font-bold text-sm px-2 py-1.5 border-l border-border">{parts.ratti.toFixed(2)}</div>
-        <div className="text-center font-mono font-black text-base px-2 py-1.5 text-primary border-l border-border">{formatGrams(mg, 4)}g</div>
+        <div className="text-center font-mono font-medium text-xs py-1.5">{parts.tola}</div>
+        <div className="text-center font-mono font-medium text-xs py-1.5 border-l border-border/60">{parts.masha}</div>
+        <div className="text-center font-mono font-medium text-xs py-1.5 border-l border-border/60">{parts.ratti.toFixed(2)}</div>
+        <div className="text-center font-mono font-bold text-xs py-1.5 text-primary border-l border-border/60">{formatGrams(mg, 4)}g</div>
       </>
     )
   }
@@ -64,7 +64,7 @@ export const KachaTableRowInput: React.FC<Props> = ({
   return (
     <>
       {cols.map((col, idx) => (
-        <div key={col.key} className={cn('p-1 text-center', idx > 0 && 'border-l border-border')}>
+        <div key={col.key} className={cn('p-1 text-center', idx > 0 && 'border-l border-border/60')}>
           <input
             type="number"
             step="any"
@@ -73,11 +73,11 @@ export const KachaTableRowInput: React.FC<Props> = ({
             onFocus={() => setActive(col.key)}
             onBlur={() => setActive(null)}
             onChange={(e) => col.change(e.target.value)}
-            className="w-full text-center font-mono text-sm font-semibold bg-background border border-border/80 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full text-center font-mono text-xs font-medium bg-background/60 hover:bg-background border border-border/60 hover:border-border rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60 transition-colors"
           />
         </div>
       ))}
-      <div className="p-1 text-center border-l border-border">
+      <div className="p-1 text-center border-l border-border/60">
         <input
           type="number"
           step="any"
@@ -87,8 +87,8 @@ export const KachaTableRowInput: React.FC<Props> = ({
           onBlur={() => setActive(null)}
           onChange={(e) => onGm(e.target.value)}
           className={cn(
-            'w-full text-center font-mono text-sm font-bold bg-background border border-border/80 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary',
-            highlightGrams ? 'text-primary border-primary/40 bg-primary/5' : 'text-foreground'
+            'w-full text-center font-mono text-xs font-semibold bg-background/60 hover:bg-background border rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60 transition-colors',
+            highlightGrams ? 'text-primary border-primary/30 bg-primary/5' : 'text-foreground border-border/60 hover:border-border'
           )}
         />
       </div>

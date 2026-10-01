@@ -1,10 +1,18 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { HiOutlineSquare3Stack3D, HiCalendarDays } from 'react-icons/hi2'
-import { HiOutlineShoppingCart, HiOutlineRefresh, HiOutlineCheck } from 'react-icons/hi'
-import { BsTruck } from 'react-icons/bs'
+import {
+  Layers,
+  Clock,
+  TrendingUp,
+  Coins,
+  BarChart3,
+  ShoppingBag,
+  RotateCcw,
+  Truck,
+  CheckCircle2,
+} from 'lucide-react'
 
-interface DashboardMetricsCardsProps {
+interface Props {
   ordersCount: number
   billsCount: number
   pendingOrdersCount: number
@@ -12,7 +20,7 @@ interface DashboardMetricsCardsProps {
   completedOrdersCount: number
 }
 
-export const DashboardMetricsCards: React.FC<DashboardMetricsCardsProps> = ({
+export const DashboardMetricsCards: React.FC<Props> = ({
   ordersCount,
   billsCount,
   pendingOrdersCount,
@@ -20,92 +28,49 @@ export const DashboardMetricsCards: React.FC<DashboardMetricsCardsProps> = ({
   completedOrdersCount,
 }) => {
   const salesCards = [
-    {
-      icon: <HiOutlineSquare3Stack3D className="size-7" />,
-      title: "Today's Orders",
-      value: "Rs 3,850,000",
-      className: "bg-teal-600",
-    },
-    {
-      icon: <HiOutlineSquare3Stack3D className="size-7" />,
-      title: "Yesterday's Orders",
-      value: "Rs 3,400,000",
-      className: "bg-amber-500",
-    },
-    {
-      icon: <HiOutlineRefresh className="size-7" />,
-      title: "This Month Sales",
-      value: "Rs 28,450,000",
-      className: "bg-blue-600",
-    },
-    {
-      icon: <HiCalendarDays className="size-7" />,
-      title: "Gold Stock (Tolas)",
-      value: "228.2 Tola",
-      className: "bg-cyan-600",
-    },
-    {
-      icon: <HiCalendarDays className="size-7" />,
-      title: "All-Time Sales",
-      value: "Rs 64,820,000",
-      className: "bg-emerald-600",
-    },
+    { icon: <Layers className="size-4 text-primary" strokeWidth={1.75} />, title: "Today's Orders", value: "Rs 3,850,000" },
+    { icon: <Clock className="size-4 text-muted-foreground" strokeWidth={1.75} />, title: "Yesterday's Orders", value: "Rs 3,400,000" },
+    { icon: <TrendingUp className="size-4 text-primary" strokeWidth={1.75} />, title: "This Month Sales", value: "Rs 28,450,000" },
+    { icon: <Coins className="size-4 text-primary" strokeWidth={1.75} />, title: "Gold Stock (Tolas)", value: "228.2 Tola" },
+    { icon: <BarChart3 className="size-4 text-muted-foreground" strokeWidth={1.75} />, title: "All-Time Turnover", value: "Rs 64,820,000" },
   ]
 
   const statusCards = [
-    {
-      icon: <HiOutlineShoppingCart className="size-5" />,
-      title: "Total Orders",
-      value: `${ordersCount + billsCount}`,
-      className: "text-orange-600 bg-orange-100 dark:bg-orange-950 dark:text-orange-300",
-    },
-    {
-      icon: <HiOutlineRefresh className="size-5" />,
-      title: "Orders Pending",
-      value: `${pendingOrdersCount}`,
-      className: "text-teal-600 bg-teal-100 dark:bg-teal-950 dark:text-teal-300",
-    },
-    {
-      icon: <BsTruck className="size-5" />,
-      title: "Orders Processing",
-      value: `${processingOrdersCount}`,
-      className: "text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-300",
-    },
-    {
-      icon: <HiOutlineCheck className="size-5" />,
-      title: "Orders Delivered",
-      value: `${completedOrdersCount || 12}`,
-      className: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300",
-    },
+    { icon: <ShoppingBag className="size-4 text-primary" strokeWidth={1.75} />, title: "Total Orders", value: `${ordersCount + billsCount}` },
+    { icon: <RotateCcw className="size-4 text-amber-600 dark:text-amber-400" strokeWidth={1.75} />, title: "Orders Pending", value: `${pendingOrdersCount}` },
+    { icon: <Truck className="size-4 text-blue-600 dark:text-blue-400" strokeWidth={1.75} />, title: "Orders Processing", value: `${processingOrdersCount}` },
+    { icon: <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" strokeWidth={1.75} />, title: "Orders Delivered", value: `${completedOrdersCount || 12}` },
   ]
 
   return (
-    <div className="space-y-4">
-      {/* 5 colorful revenue & stock cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {salesCards.map((card, index) => (
+    <div className="space-y-3">
+      {/* 5 Executive Treasury & Revenue Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        {salesCards.map((card, idx) => (
           <div
-            key={`sales-card-${index}`}
-            className={`p-6 rounded-lg flex flex-col items-center justify-center space-y-2 text-white text-center shadow-xs transition-transform hover:-translate-y-0.5 ${card.className}`}
+            key={`sales-${idx}`}
+            className="p-3.5 rounded-xl border border-border/80 bg-card hover:border-primary/40 transition-colors shadow-2xs space-y-1.5"
           >
-            <div className="[&>svg]:size-7">{card.icon}</div>
-            <p className="text-sm font-medium opacity-90">{card.title}</p>
-            <p className="text-2xl font-bold tracking-tight">{card.value}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">{card.title}</span>
+              <div className="p-1 rounded-md bg-muted/60">{card.icon}</div>
+            </div>
+            <div className="text-lg font-bold font-mono text-foreground tracking-tight">{card.value}</div>
           </div>
         ))}
       </div>
 
-      {/* 4 status overview cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {statusCards.map((card, index) => (
-          <Card key={`status-card-${index}`} className="border-border">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className={`size-12 rounded-full grid place-items-center shrink-0 ${card.className}`}>
+      {/* 4 Operations Status Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {statusCards.map((card, idx) => (
+          <Card key={`status-${idx}`} className="border-border/80 shadow-2xs">
+            <CardContent className="flex items-center gap-3 p-3">
+              <div className="size-9 rounded-lg bg-muted/60 border border-border/60 flex items-center justify-center shrink-0">
                 {card.icon}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground font-medium">{card.title}</span>
-                <span className="text-2xl font-bold text-foreground tracking-tight">{card.value}</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{card.title}</span>
+                <span className="text-lg font-bold font-mono text-foreground tracking-tight">{card.value}</span>
               </div>
             </CardContent>
           </Card>
