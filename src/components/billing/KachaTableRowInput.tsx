@@ -47,10 +47,10 @@ export const KachaTableRowInput: React.FC<Props> = ({
   if (readOnly) {
     return (
       <>
-        <div className="text-center font-mono font-medium text-xs py-1.5">{parts.tola}</div>
-        <div className="text-center font-mono font-medium text-xs py-1.5 border-l border-border/60">{parts.masha}</div>
-        <div className="text-center font-mono font-medium text-xs py-1.5 border-l border-border/60">{parts.ratti.toFixed(2)}</div>
-        <div className="text-center font-mono font-bold text-xs py-1.5 text-primary border-l border-border/60">{formatGrams(mg, 4)}g</div>
+        <div className="text-center font-mono font-medium text-xl py-1.5">{parts.tola}</div>
+        <div className="text-center font-mono font-medium text-xl py-1.5 border-l border-border/60">{parts.masha}</div>
+        <div className="text-center font-mono font-medium text-xl py-1.5 border-l border-border/60">{parts.ratti.toFixed(2)}</div>
+        <div className="text-center font-mono font-bold   text-xl py-1.5 text-primary border-l border-border/60">{formatGrams(mg, 4)}g</div>
       </>
     )
   }
@@ -73,7 +73,7 @@ export const KachaTableRowInput: React.FC<Props> = ({
             onFocus={() => setActive(col.key)}
             onBlur={() => setActive(null)}
             onChange={(e) => col.change(e.target.value)}
-            className="w-full text-center font-mono text-xs font-medium bg-background/60 hover:bg-background border border-border/60 hover:border-border rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60 transition-colors"
+            className="w-full text-center font-mono text-lg font-medium bg-background/60 hover:bg-background border border-border/60 hover:border-border rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60 transition-colors"
           />
         </div>
       ))}
@@ -87,7 +87,7 @@ export const KachaTableRowInput: React.FC<Props> = ({
           onBlur={() => setActive(null)}
           onChange={(e) => onGm(e.target.value)}
           className={cn(
-            'w-full text-center font-mono text-xs font-semibold bg-background/60 hover:bg-background border rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60 transition-colors',
+            'w-full text-center font-mono text-lg font-semibold bg-background/60 hover:bg-background border rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/60 transition-colors',
             highlightGrams ? 'text-primary border-primary/30 bg-primary/5' : 'text-foreground border-border/60 hover:border-border'
           )}
         />

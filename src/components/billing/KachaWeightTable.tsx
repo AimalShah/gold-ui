@@ -44,14 +44,14 @@ export const KachaWeightTable: React.FC<Props> = ({
         {HEADERS.map((h, i) => (
           <div
             key={h}
-            className={`${i === 0 ? 'col-span-4 text-foreground font-bold px-3 text-left' : 'col-span-2 text-muted-foreground border-l border-border/60 px-2 text-center'} ${i === 4 ? 'text-primary font-bold' : ''} py-2`}
+            className={`text-xl ${i === 0 ? 'col-span-4 text-foreground font-bold px-3 text-left ' : 'col-span-2 text-muted-foreground border-l border-border/60 px-2 text-center'} ${i === 4 ? 'text-primary font-bold text-xl' : ''} py-2`}
           >
             {h}
           </div>
         ))}
       </div>
 
-      <div className="divide-y divide-border/60 text-xs">
+      <div className="divide-y divide-border/60">
         <KachaTableSimpleRow label="WEIGHT" subtitle="Initial Gross Weight" mg={weightMg} onChangeMg={setWeightMg} gramsPerTola={gramsPerTola} highlightGrams />
         <KachaTableSimpleRow label="CUT/TOLA" subtitle="Deduction rate per tola" mg={cutPerTolaMg} onChangeMg={setCutPerTolaMg} gramsPerTola={gramsPerTola} />
         <KachaTableDeductionRow label="CUT" subtitle="Stone / Kat deduction" unit={cutUnit} onUnitChange={setCutUnit} mg={cutMg} onChangeMg={setCutMg} gramsPerTola={gramsPerTola} />
@@ -61,7 +61,7 @@ export const KachaWeightTable: React.FC<Props> = ({
         {/* ROW 6: LAST TOTAL WEIGHT */}
         <div className="grid grid-cols-12 items-center bg-primary/10 border-t border-primary/25 font-bold">
           <div className="col-span-4 px-3 py-2">
-            <span className="font-bold text-primary text-xs uppercase tracking-wider block">LAST TOTAL WEIGHT</span>
+            <span className="font-bold text-primary text-xl uppercase tracking-wider block">TOTAL WEIGHT</span>
             <span className="text-[10px] text-muted-foreground font-mono">{formatTMR(netWeightMg, gramsPerTola)}</span>
           </div>
           <div className="col-span-8 grid grid-cols-4 items-center">

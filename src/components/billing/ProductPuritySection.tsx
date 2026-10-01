@@ -1,6 +1,5 @@
 import React from 'react'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
 
 interface Props {
   productName: string
@@ -9,11 +8,25 @@ interface Props {
   setCarat: (carat: number) => void
 }
 
+const PRODUCT_PRESETS = [
+  'Bridal Necklace Set',
+  'Gold Bangles / Kangan',
+  'Gold Ring / Band',
+  'Gold Chain / Mala',
+  'Earrings / Tops / Jhumka',
+  'Gold Bracelet / Kara',
+  'Locket / Pendant Set',
+  'Gold Biscuit / Bar (24K)',
+  'Gold Coin (Tola / Gram)',
+  'Nose Pin / Nath',
+  'Custom Jewellery',
+]
+
 const KARAT_OPTIONS = [
-  { value: 24, label: '24K Gold', purity: 'Pure 99.9%' },
-  { value: 22, label: '22K Jewellery', purity: 'Standard 91.6%' },
-  { value: 21, label: '21K Gulf', purity: 'Fine 87.5%' },
-  { value: 18, label: '18K Diamond', purity: 'Mount 75.0%' },
+  { value: 24, label: '24K Gold', purity: '99.9%' },
+  { value: 22, label: '22K Jewellery', purity: '91.6%' },
+  { value: 21, label: '21K Gulf', purity: '87.5%' },
+  { value: 18, label: '18K Diamond Mount', purity: '75.0%' },
 ]
 
 export const ProductPuritySection: React.FC<Props> = ({
@@ -22,57 +35,59 @@ export const ProductPuritySection: React.FC<Props> = ({
   carat,
   setCarat,
 }) => {
+  const isPreset = PRODUCT_PRESETS.includes(productName)
+
   return (
-    <div className="space-y-3">
-      <div className="space-y-1">
+    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+      {/* Product Description Dropdown & Custom Input */}
+      <div className="sm:col-span-8 space-y-1">
         <label className="text-xs font-semibold text-foreground tracking-tight block">
           Product Description
         </label>
-        <Input
-          value={productName}
-          onChange={(e) => setProductName(e.target.value)}
-          placeholder="e.g. 22 Karat Bridal Necklace Set, Handcrafted Bangles"
-          className="h-9 text-xs font-medium w-full bg-background border-border/80 rounded-lg focus-visible:ring-1 focus-visible:ring-primary/40"
-        />
+        <div className="flex items-center gap-1.5">
+          <select
+            value={isPreset ? productName : 'custom'}
+            onChange={(e) => {
+              if (e.target.value === 'custom') {
+                setProductName('')
+              } else {
+                setProductName(e.target.value)
+              }
+            }}
+            className="h-8.5 w-44 sm:w-48 text-xs font-medium bg-background border border-border/80 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer text-foreground shrink-0"
+          >
+            <option value="">Select Item...</option>
+            {PRODUCT_PRESETS.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+            <option value="custom">✎ Custom Entry</option>
+          </select>
+
+          <Input
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            placeholder="Item details / custom description..."
+            className="h-8.5 text-xs font-medium flex-1 bg-background border-border/80 rounded-md focus-visible:ring-1 focus-visible:ring-primary/40"
+          />
+        </div>
       </div>
 
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-foreground tracking-tight">
-            Gold Hallmark & Purity
-          </label>
-          <span className="text-[11px] text-muted-foreground">Select purity benchmark</span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {KARAT_OPTIONS.map((opt) => {
-            const isSelected = carat === opt.value
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setCarat(opt.value)}
-                className={cn(
-                  'p-2 rounded-lg border text-left transition-all cursor-pointer w-full',
-                  isSelected
-                    ? 'border-primary/60 bg-primary/10 text-foreground shadow-2xs ring-1 ring-primary/30'
-                    : 'border-border/70 bg-card hover:bg-muted/40 text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={cn('text-xs font-bold tracking-tight', isSelected ? 'text-primary' : 'text-foreground')}>
-                    {opt.label}
-                  </span>
-                  {isSelected && (
-                    <span className="text-[9px] font-mono font-semibold px-1 rounded bg-primary/20 text-primary">
-                      ACTIVE
-                    </span>
-                  )}
-                </div>
-                <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">{opt.purity}</div>
-              </button>
-            )
-          })}
-        </div>
+      {/* Gold Hallmark & Purity Dropdown */}
+      <div className="sm:col-span-4 space-y-1">
+        <label className="text-xs font-semibold text-foreground tracking-tight block">
+          Gold Purity Hallmark
+        </label>
+        <select
+          value={carat}
+          onChange={(e) => setCarat(Number(e.target.value))}
+          className="h-8.5 w-full text-xs font-bold font-mono bg-background border border-border/80 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer text-primary"
+        >
+          {KARAT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label} ({opt.purity})
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   )

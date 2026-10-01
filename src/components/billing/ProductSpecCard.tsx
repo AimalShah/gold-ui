@@ -31,26 +31,20 @@ export const ProductSpecCard: React.FC<ProductSpecCardProps> = (p) => {
   return (
     <div className="rounded-xl border border-border/80 bg-card p-4 sm:p-5 space-y-4 shadow-2xs">
       <div className="flex items-center justify-between border-b border-border/70 pb-3">
-        <div>
+        {/*<div>
           <h2 className="text-sm font-bold text-foreground tracking-tight uppercase">
             Product & Gold Specifications
           </h2>
           <p className="text-[11px] text-muted-foreground mt-0.5">
             Item description, purity hallmark, gross weight, and deductions
           </p>
-        </div>
+        </div>*/}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/25 text-primary text-xs font-bold font-mono">
           <span>{p.carat}K</span>
           <span className="text-[10px] font-sans font-medium opacity-80">Hallmark</span>
         </div>
       </div>
 
-      <ProductPuritySection
-        productName={p.productName}
-        setProductName={p.setProductName}
-        carat={p.carat}
-        setCarat={p.setCarat}
-      />
 
       <div className="space-y-1.5 pt-1">
         <div className="flex items-center justify-between">
@@ -71,6 +65,14 @@ export const ProductSpecCard: React.FC<ProductSpecCardProps> = (p) => {
           gramsPerTola={p.gramsPerTola}
         />
       </div>
+
+
+      <ProductPuritySection
+        productName={p.productName}
+        setProductName={p.setProductName}
+        carat={p.carat}
+        setCarat={p.setCarat}
+      />
 
       <ProductChargesSection
         goldRatePkr={p.goldRatePkr}

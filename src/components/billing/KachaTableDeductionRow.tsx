@@ -26,7 +26,7 @@ export const KachaTableDeductionRow: React.FC<Props> = ({
     <div className="grid grid-cols-12 items-center bg-muted/10 hover:bg-muted/20 transition-colors">
       <div className="col-span-4 px-3 py-1.5 flex items-center justify-between gap-1.5">
         <div>
-          <span className="font-semibold text-foreground text-xs uppercase tracking-wide block">{label}</span>
+          <span className="font-semibold text-foreground text-lg uppercase tracking-wide block">{label}</span>
           <span className="text-[10px] text-muted-foreground">{subtitle}</span>
         </div>
         <select
