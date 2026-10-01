@@ -33,7 +33,7 @@ interface ProductSpecCardProps {
 
 export const ProductSpecCard: React.FC<ProductSpecCardProps> = (p) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* 1: KACHA WEIGHT TABLE */}
       <KachaWeightTable
         weightMg={p.weightMg}

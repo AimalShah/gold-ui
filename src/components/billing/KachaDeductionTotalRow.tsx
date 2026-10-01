@@ -28,7 +28,7 @@ export const KachaDeductionTotalRow: React.FC<Props> = ({
   return (
     <div className={cn('grid grid-cols-12 items-center border-b-2 border-border', rowBgClass)}>
       {/* Col 1: Label + Nag/Stone count input box */}
-      <div className="col-span-4 px-3 py-2 flex items-center justify-between gap-2">
+      <div className="col-span-4 px-4 py-3.5 flex items-center justify-between gap-2">
         <span className="font-black text-foreground text-xl tracking-tight">{label}</span>
         {onSubInputChange && (
           <div className="flex items-center gap-1.5">
@@ -41,7 +41,7 @@ export const KachaDeductionTotalRow: React.FC<Props> = ({
               value={subInputValue}
               onChange={(e) => onSubInputChange(e.target.value)}
               className={cn(
-                'w-14 h-10 text-center text-xl font-mono font-bold border-2 rounded focus:outline-none focus:ring-2 focus:ring-primary',
+                'w-14 h-11 text-center text-xl font-mono font-bold border-2 rounded focus:outline-none focus:ring-2 focus:ring-primary',
                 subInputBgClass
               )}
             />
