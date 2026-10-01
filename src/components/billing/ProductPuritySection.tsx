@@ -29,24 +29,24 @@ export const ProductPuritySection: React.FC<Props> = ({
   const currentKarat = KARATS.find((k) => k.value === carat)
 
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/20 p-3 sm:p-3.5 flex flex-col justify-between space-y-3">
-      <div className="flex items-center justify-between border-b border-border/50 pb-2">
-        <div className="flex items-center gap-1.5">
-          <Tag className="size-3.5 text-primary" strokeWidth={1.75} />
-          <span className="text-xs font-bold text-foreground uppercase tracking-wide">Item & Hallmark Specification</span>
+    <div className="rounded-xl border border-border bg-muted/20 p-3.5 sm:p-4 flex flex-col justify-between space-y-3.5">
+      <div className="flex items-center justify-between border-b border-border/60 pb-2">
+        <div className="flex items-center gap-2">
+          <Tag className="size-4 text-primary" strokeWidth={2} />
+          <span className="text-sm font-bold text-foreground uppercase tracking-wide">Item & Hallmark</span>
         </div>
-        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+        <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/25">
           {carat}K • {currentKarat?.purity || 'Standard'}
         </span>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide block">Product Description</label>
-        <div className="flex items-center gap-1.5">
+      <div className="space-y-1.5">
+        <label className="text-xs sm:text-sm font-bold text-foreground uppercase tracking-wide block">Product Description</label>
+        <div className="flex items-center gap-2">
           <select
             value={isPreset ? productName : 'custom'}
             onChange={(e) => setProductName(e.target.value === 'custom' ? '' : e.target.value)}
-            className="h-9 w-36 sm:w-44 text-xs font-medium bg-background border border-border/80 rounded-lg px-2 focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer text-foreground shrink-0"
+            className="h-10 w-40 sm:w-48 text-sm font-semibold bg-background border border-border rounded-lg px-2.5 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer text-foreground shrink-0"
           >
             <option value="">Quick Preset...</option>
             {PRESETS.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -56,17 +56,17 @@ export const ProductPuritySection: React.FC<Props> = ({
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
             placeholder="Item details / custom tag..."
-            className="h-9 text-xs font-medium flex-1 bg-background border-border/80 rounded-lg focus-visible:ring-1 focus-visible:ring-primary/40"
+            className="h-10 text-sm font-semibold flex-1 bg-background border-border rounded-lg focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide block">Gold Purity Hallmark</label>
+      <div className="space-y-1.5">
+        <label className="text-xs sm:text-sm font-bold text-foreground uppercase tracking-wide block">Gold Purity Hallmark</label>
         <select
           value={carat}
           onChange={(e) => setCarat(Number(e.target.value))}
-          className="h-9 w-full text-xs font-bold font-mono bg-background border border-border/80 rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer text-foreground"
+          className="h-10 w-full text-sm font-bold font-mono bg-background border border-border rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer text-foreground"
         >
           {KARATS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label} — {opt.purity}</option>)}
         </select>

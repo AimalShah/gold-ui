@@ -29,41 +29,17 @@ interface ProductSpecCardProps {
 
 export const ProductSpecCard: React.FC<ProductSpecCardProps> = (p) => {
   return (
-    <div className="rounded-xl border border-border/80 bg-card p-4 sm:p-5 space-y-4 shadow-2xs">
-      <div className="flex items-center justify-between border-b border-border/70 pb-2.5">
-        <div>
-          <h2 className="text-sm font-bold text-foreground tracking-tight uppercase">
-            Product & Gold Specifications
-          </h2>
-          <p className="text-[11px] text-muted-foreground">
-            Weight ledger, purity hallmark, and pricing parameters
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/25 text-primary text-xs font-bold font-mono">
-          <span>{p.carat}K Fine</span>
-        </div>
-      </div>
-
-      {/* KACHA SYSTEM - UNTOUCHED */}
-      <div className="space-y-1.5 pt-0.5">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-foreground uppercase tracking-wide">
-            Weight Ledger & Deductions (Kacha System)
-          </label>
-          <span className="text-[11px] text-muted-foreground font-mono">
-            1 Tola = {p.gramsPerTola}g
-          </span>
-        </div>
-        <KachaWeightTable
-          weightMg={p.weightMg}
-          setWeightMg={p.setWeightMg}
-          cutMg={p.stoneDeductionMg}
-          setCutMg={p.setStoneDeductionMg}
-          polishMg={p.polishDeductionMg}
-          setPolishMg={p.setPolishDeductionMg}
-          gramsPerTola={p.gramsPerTola}
-        />
-      </div>
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-4 shadow-2xs">
+      {/* KACHA TABLE */}
+      <KachaWeightTable
+        weightMg={p.weightMg}
+        setWeightMg={p.setWeightMg}
+        cutMg={p.stoneDeductionMg}
+        setCutMg={p.setStoneDeductionMg}
+        polishMg={p.polishDeductionMg}
+        setPolishMg={p.setPolishDeductionMg}
+        gramsPerTola={p.gramsPerTola}
+      />
 
       {/* Symmetrical Dual-Panel Layout: Item Purity & Valuation Charges */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 pt-1 items-stretch">
