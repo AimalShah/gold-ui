@@ -54,6 +54,11 @@ export const BillingPage: React.FC = () => {
               setChargesMode={form.setChargesMode}
               chargesPkr={form.chargesPkr}
               setChargesPkr={form.setChargesPkr}
+              goldValuePkr={form.goldValuePkr}
+              totalAmountPkr={form.totalAmountPkr}
+              amountReceivedPkr={form.amountReceivedPkr}
+              setAmountReceivedPkr={form.setAmountReceivedPkr}
+              balanceDuePkr={form.balanceDuePkr}
             />
           </div>
 {/*

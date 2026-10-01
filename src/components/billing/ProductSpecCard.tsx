@@ -1,8 +1,7 @@
 import React from 'react'
 import { ChargesMode } from '@/lib/gold-math'
-import { ProductPuritySection } from './ProductPuritySection'
 import { KachaWeightTable } from './KachaWeightTable'
-import { ProductChargesSection } from './ProductChargesSection'
+import { BillingValuationGrid } from './BillingValuationGrid'
 
 interface ProductSpecCardProps {
   productName: string
@@ -25,12 +24,17 @@ interface ProductSpecCardProps {
   setChargesMode: (mode: ChargesMode) => void
   chargesPkr: number
   setChargesPkr: (charges: number) => void
+  goldValuePkr: number
+  totalAmountPkr: number
+  amountReceivedPkr: number
+  setAmountReceivedPkr: (amt: number) => void
+  balanceDuePkr: number
 }
 
 export const ProductSpecCard: React.FC<ProductSpecCardProps> = (p) => {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-4 shadow-2xs">
-      {/* KACHA TABLE */}
+    <div className="space-y-4">
+      {/* 1: KACHA WEIGHT TABLE */}
       <KachaWeightTable
         weightMg={p.weightMg}
         setWeightMg={p.setWeightMg}
@@ -41,25 +45,24 @@ export const ProductSpecCard: React.FC<ProductSpecCardProps> = (p) => {
         gramsPerTola={p.gramsPerTola}
       />
 
-      {/* Symmetrical Dual-Panel Layout: Item Purity & Valuation Charges */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 pt-1 items-stretch">
-        <ProductPuritySection
-          productName={p.productName}
-          setProductName={p.setProductName}
-          carat={p.carat}
-          setCarat={p.setCarat}
-        />
-
-        <ProductChargesSection
-          goldRatePkr={p.goldRatePkr}
-          setGoldRatePkr={p.setGoldRatePkr}
-          defaultRate={p.defaultRate}
-          chargesMode={p.chargesMode}
-          setChargesMode={p.setChargesMode}
-          chargesPkr={p.chargesPkr}
-          setChargesPkr={p.setChargesPkr}
-        />
-      </div>
+      {/* 2: TRADITIONAL VALUATION GRID */}
+      <BillingValuationGrid
+        goldRatePkr={p.goldRatePkr}
+        setGoldRatePkr={p.setGoldRatePkr}
+        goldValuePkr={p.goldValuePkr}
+        chargesMode={p.chargesMode}
+        setChargesMode={p.setChargesMode}
+        chargesPkr={p.chargesPkr}
+        setChargesPkr={p.setChargesPkr}
+        totalAmountPkr={p.totalAmountPkr}
+        amountReceivedPkr={p.amountReceivedPkr}
+        setAmountReceivedPkr={p.setAmountReceivedPkr}
+        balanceDuePkr={p.balanceDuePkr}
+        carat={p.carat}
+        setCarat={p.setCarat}
+        productName={p.productName}
+        setProductName={p.setProductName}
+      />
     </div>
   )
 }
